@@ -29,42 +29,41 @@ exec 1> >(tee -a "$log") 2>&1
 
 echo -e "Wake on Lan and update ${YELLOW}$Ver${RESET} - ${GREEN}started${RESET}: $(date)\n"
 
+failed=0
 echo -n "Checking dependencies... "
-	for name in etherwake tee ssh systemctl
-	do
-		[[ $(which $name 2>/dev/null) ]] || { echo -en "\n$name needs to be installed. Use 'sudo apt-get install $name'";deps=1; }
-	done
-		[[ $deps -ne 1 ]] && echo -e "${GREEN}OK${RESET}\n" || { echo -en "\nInstall the above and rerun this script\n";exit 1; }
+        for name in etherwake tee ssh systemctl
+        do
+                if ! [[ $(which $name 2>/dev/null) ]]; then
+                        [[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
+                        failed=1
+                        echo -en "\n$name needs to be installed. Use 'sudo apt-get install $name'"
+                fi
+        done
+        [[ $failed -eq 1 ]] && echo -en "\n\nInstall the above and rerun this script\n" && exit 1;
+
+        echo -e "${GREEN}OK${RESET}\n"
+
+unset failed
+unset name
 
 # //Start of config\\
+DIR="${BASH_SOURCE%/*}"
+cd $DIR
+
+echo -n "Checking for user config... "
+	for name in wol_config.cfg
+	do
+		[ -f $name ] || { echo -en "${RED}FAIL${RESET}\n";deps=1; }
+	done
+		[[ $deps -ne 1 ]] && echo -e "${GREEN}OK${RESET}\n" || { echo -en "\nCreate a new wol_config.cfg from the wol_config_example.cfg\n";exit 1; }
+unset name
+unset deps
+
+#DIR="${BASH_SOURCE%/*}"
+#if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 set -v
-# Target Broadcast IP (i.e 192.168.0.255, get by running "ifconfig" on the target machine).
-BROADCAST=192.168.0.255
-
-# Target IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running "ifconfig" on the target machine).
-MAC=b0:83:fe:ae:d1:db
-
-# Target machines IP4 number.
-TARGET=192.168.0.200
-
-# Target machines SSH port (default 22)
-PORT=220
-
-# The name of your local machines network interface (i.e eth0 or enp3s0)
-IFNAME=enp3s0
-
-# Your SSH username on the target machine. It will help if this user have
-# "YOUR_USER_NAME_HERE ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /bin/systemctl" without the ""
-# set in /etc/sudoers file on the target machine, this so you dont need to type in passwords "all" the time.
-# NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).
-USER=gramse
-
-# Were your SSH RSA key file are located on the local machine.
-RSA=~/.ssh/update_rsa
-
-# How many seconds do we wait for the target machine to reboot.
-# Raise or lower this if needed.
-SEC=10
+#. "$DIR/wol_config.cfg"
+. "wol_config.cfg"
 
 # Please ignore the following one(1) row in the logfile.
 set +v
