@@ -21,50 +21,49 @@ SEC_COLOR=${RED}
 	if [ ! -d "./log" ]; then
 		mkdir -v ./log;
 	fi
+# Continuing on with the log code.
 log=./log/"$(date +"%F-%T").log"
 touch $log
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3 15
 exec 1> >(tee -a "$log") 2>&1
 
+
 echo -e "Wake on Lan and update ${YELLOW}$Ver${RESET} - ${GREEN}started${RESET}: $(date)\n"
 
+# Checking for some needed programs.
+failed=0
 echo -n "Checking dependencies... "
-	for name in etherwake tee ssh systemctl
-	do
-		[[ $(which $name 2>/dev/null) ]] || { echo -en "\n$name needs to be installed. Use 'sudo apt-get install $name'";deps=1; }
-	done
-		[[ $deps -ne 1 ]] && echo -e "${GREEN}OK${RESET}\n" || { echo -en "\nInstall the above and rerun this script\n";exit 1; }
+        for name in etherwake tee ssh systemctl
+        do
+                if ! [[ $(which $name 2>/dev/null) ]]; then
+                        [[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
+                        failed=1
+                        echo -en "\n$name needs to be installed. Use 'sudo apt-get install $name'"
+                fi
+        done
+        [[ $failed -eq 1 ]] && echo -en "\n\nInstall the above and rerun this script\n" && exit 1;
+
+        echo -e "${GREEN}OK${RESET}\n"
+
+unset failed
+unset name
 
 # //Start of config\\
+DIR="${BASH_SOURCE%/*}"
+cd $DIR
+# Checking if user config file are present.
+echo -n "Checking for user config... "
+	for name in wol_config.cfg
+	do
+		[ -f $name ] || { echo -en "${RED}FAIL${RESET}\n";deps=1; }
+	done
+		[[ $deps -ne 1 ]] && echo -e "${GREEN}OK${RESET}\n" || { echo -en "\nCreate a new wol_config.cfg from the wol_config_example.cfg\n";exit 1; }
+unset name
+unset deps
+
 set -v
-# Target Broadcast IP (i.e 192.168.0.255, get by running "ifconfig" on the target machine).
-BROADCAST=192.168.0.255
-
-# Target IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running "ifconfig" on the target machine).
-MAC=b0:83:fe:ae:d1:db
-
-# Target machines IP4 number.
-TARGET=192.168.0.200
-
-# Target machines SSH port (default 22)
-PORT=220
-
-# The name of your local machines network interface (i.e eth0 or enp3s0)
-IFNAME=enp3s0
-
-# Your SSH username on the target machine. It will help if this user have
-# "YOUR_USER_NAME_HERE ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /bin/systemctl" without the ""
-# set in /etc/sudoers file on the target machine, this so you dont need to type in passwords "all" the time.
-# NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).
-USER=gramse
-
-# Were your SSH RSA key file are located on the local machine.
-RSA=~/.ssh/update_rsa
-
-# How many seconds do we wait for the target machine to reboot.
-# Raise or lower this if needed.
-SEC=10
+. "wol_config.cfg"
 
 # Please ignore the following one(1) row in the logfile.
 set +v
@@ -72,12 +71,12 @@ set +v
 
 # Start of the magic (magic packet, get it? ;).
 echo -e "${GREEN}Waking target up.${RESET}\n"
-#	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
-#	sleep 5
+	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
+	sleep 5
 	echo -e "${GREEN}Target gone woke, lets update it.${RESET}\n"
-#		ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update; sudo apt-get -y upgrade'
+		ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update; sudo apt-get -y upgrade'
 	echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
-#		ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
+		ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
 	echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
 		tput civis
 			echo -ne $SEC="$SEC_COLOR"
@@ -95,7 +94,7 @@ echo -e "${GREEN}Waking target up.${RESET}\n"
 			echo -e "${RESET}\n"
 		tput cnorm
 	echo -e "${GREEN}Target rebooted, lets suspend it until next update.${RESET}\n"
-#		ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend'
+		ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend'
 	echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n"
 
 echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"

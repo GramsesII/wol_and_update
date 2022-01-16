@@ -21,14 +21,17 @@ SEC_COLOR=${RED}
 	if [ ! -d "./log" ]; then
 		mkdir -v ./log;
 	fi
+# Continuing on with the log code.
 log=./log/"$(date +"%F-%T").log"
 touch $log
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3 15
 exec 1> >(tee -a "$log") 2>&1
 
+
 echo -e "Wake on Lan and update ${YELLOW}$Ver${RESET} - ${GREEN}started${RESET}: $(date)\n"
 
+# Checking for some needed programs.
 failed=0
 echo -n "Checking dependencies... "
         for name in etherwake tee ssh systemctl
@@ -49,7 +52,7 @@ unset name
 # //Start of config\\
 DIR="${BASH_SOURCE%/*}"
 cd $DIR
-
+# Checking if user config file are present.
 echo -n "Checking for user config... "
 	for name in wol_config.cfg
 	do
@@ -59,10 +62,7 @@ echo -n "Checking for user config... "
 unset name
 unset deps
 
-#DIR="${BASH_SOURCE%/*}"
-#if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 set -v
-#. "$DIR/wol_config.cfg"
 . "wol_config.cfg"
 
 # Please ignore the following one(1) row in the logfile.
