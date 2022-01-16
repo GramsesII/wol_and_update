@@ -116,7 +116,6 @@ echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
                 ;;
         e)
         nano -AKGwp wol_config.cfg
-	exit 0
                 ;;
         *)
                 echo -en "Usage: ./WoL.sh {c|e|h|l|r|v}\n"
