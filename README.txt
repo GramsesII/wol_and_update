@@ -1,5 +1,5 @@
-Short explanation of files and dir(s). used by Wake on Lan and upgrade script.
-------------------------------------------------------------------------------
+Short explanation of files and dir(s). used by 'Wake on Lan and upgrade' script.
+--------------------------------------------------------------------------------
 
 WoL.sh			- Main script file.
 
