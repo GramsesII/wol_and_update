@@ -89,7 +89,7 @@ echo -e "${GREEN}Waking target up.${RESET}\n"
 					if [ "$SEC" -le "15" ]; then
 					SEC_COLOR="${GREEN}"
 				fi
-					printf "\r${RESET}seconds to finnished reboot: $SEC_COLOR%02d$RESET" "$SEC"
+					printf "\r${RESET}seconds to finished reboot: $SEC_COLOR%02d$RESET" "$SEC"
 					let "SEC=SEC-1"
 					sleep 1
 				done
