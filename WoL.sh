@@ -16,7 +16,7 @@ YELLOW='\e[0;33m'
 RESET='\e[0m'
 SEC_COLOR=${RED}
 
-case "$choice" in
+case "$1" in
 	r)
 # Log thingys
 # Lets check if the log dir. exist if not lets create it.

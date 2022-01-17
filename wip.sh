@@ -16,7 +16,7 @@ YELLOW='\e[0;33m'
 RESET='\e[0m'
 SEC_COLOR=${RED}
 
-case "$choice" in
+case "$1" in
 	r)
 # Log thingys
 # Lets check if the log dir. exist if not lets create it.
@@ -103,19 +103,43 @@ echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
 
 		;;
         h)
-        cat README.txt
+        for name in README.txt
+        do
+                [ -f $name ] || { echo -en "${RED}Readme file missing${RESET}\n";deps=1; }
+        done
+                [[ $deps -ne 1 ]] && cat README.txt || { exit 1; }
                 ;;
         v)
         echo -e "$Ver"
                 ;;
         l)
-        cat LICENSE.txt
+         for name in LICENSE.txt
+        do
+                [ -f $name ] || { echo -en "${RED}License file missing${RESET}\n";deps=1; }
+        done
+                [[ $deps -ne 1 ]] && cat LICENSE.txt || { exit 1; }
                 ;;
         c)
-        cat wol_config.cfg
+        echo -n "Checking for user config... "
+        for name in wol_config.cfg
+        do
+                [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
+        done
+                [[ $deps -ne 1 ]] && cat wol_config.cfg || { while true; do
+    			read -p "Do you Want to create one from 'wol_config_example.cfg' [y/n]? " yn
+    			case $yn in
+        			[Yy]* ) cp ./wol_config_example.cfg ./wol_config.cfg; nano -AKGwp ./wol_config.cfg; break;;
+        			[Nn]* ) exit 1;;
+        			* ) echo "Please answer yes or no.";;
+    			esac
+	done ;}
                 ;;
         e)
-        nano -AKGwp wol_config.cfg
+	for name in wol_config.cfg
+        do
+                [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
+        done
+                [[ $deps -ne 1 ]] && nano -AKGwp wol_config.cfg || { exit 1; }
                 ;;
         *)
                 echo -en "Usage: ./WoL.sh {c|e|h|l|r|v}\n"
