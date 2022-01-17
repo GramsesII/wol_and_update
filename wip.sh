@@ -102,6 +102,7 @@ echo -e "${GREEN}Waking target up.${RESET}\n"
 echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
 
 		;;
+# Help section
         h)
         for name in README.txt
         do
@@ -113,7 +114,7 @@ echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
         echo -e "$Ver"
                 ;;
         l)
-         for name in LICENSE.txt
+        for name in LICENSE.txt
         do
                 [ -f $name ] || { echo -en "${RED}License file missing${RESET}\n";deps=1; }
         done
@@ -139,7 +140,7 @@ echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
         do
                 [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
         done
-                [[ $deps -ne 1 ]] && nano -AKGwp wol_config.cfg || { exit 1; }
+                [[ $deps -ne 1 ]] && nano -AKGwp ./wol_config.cfg || { exit 1; }
                 ;;
         *)
                 echo -en "Usage: ./WoL.sh {c|e|h|l|r|v}\n"
