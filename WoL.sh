@@ -16,6 +16,8 @@ YELLOW='\e[0;33m'
 RESET='\e[0m'
 SEC_COLOR=${RED}
 
+case "$choice" in
+	r)
 # Log thingys
 # Lets check if the log dir. exist if not lets create it.
 	if [ ! -d "./log" ]; then
@@ -98,6 +100,29 @@ echo -e "${GREEN}Waking target up.${RESET}\n"
 	echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n"
 
 echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
+
+		;;
+        h)
+        cat README.txt
+                ;;
+        v)
+        echo -e "$Ver"
+                ;;
+        l)
+        cat LICENSE.txt
+                ;;
+        c)
+        cat wol_config.cfg
+                ;;
+        e)
+        nano -AKGwp wol_config.cfg
+                ;;
+        *)
+                echo -en "Usage: ./WoL.sh {c|e|h|l|r|v}\n"
+                echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Run main script.\n v, Version.\n"
+                exit 1
+                ;;
+esac
 
 exit 0
 #EoF
