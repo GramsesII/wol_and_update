@@ -13,12 +13,13 @@ main(){
 
 check(){
 	if ! [[ -f $F1 ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
-		else
-			if [[ -s $F2 ]]; then {echo -en "config present"; mv "$F2" "$F2-old"; }
-			else
-				echo -en "no config insight move along, move along...\n";
-			fi
+		else main;
 	fi
+		if [[ -s $F2 ]]; then echo -en "config present\nMaking a backup to '$F2-old'\n"; { mv -f ./$F2 ./$F2-old; }
+		else
+			echo -en "no config insight move along, move along...\n"; return 0
+		fi
+	return 0
 	}
 
 input(){
@@ -41,14 +42,14 @@ input(){
 		read -p ": " RSA;
 		echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
 		echo -en "Raise or lower this if needed (default SEC=60).\n";
-		read -p ": " SEC; # }
+		read -p ": " SEC;
+	return 0
 	}
 
 review(){
 	echo -en "
 # Start of auto configured '$config'\n
 # More info about this config in 'wol_config_example.cfg'\n
-\n
 BROADCAST=$BROADCAST\n
 MAC=$MAC\n
 TARGET=$TARGET\n
@@ -58,16 +59,15 @@ USER=$USER\n
 RSA=$RSA\n
 SEC=$SEC\n
 # End of auto configured '$config'\n"
+return 0
 	}
 
-[[ -f $F1 ]] && main || check; input
-
-#check
-#input
-	clear
-	echo -en "This will be your config file.\n"
-review
-	echo -en "this file only lets the script (WoL.sh) know if it is the first start or not, please ignore" > .1st
+check
+	input
+		clear
+		echo -en "This will be your config file.\n"
+			review
+echo -en "this file only lets the script (WoL.sh) know if it is the first start or not, please ignore" > .1st
 
 while true; do
 	read -p "Wanna keep it ^_^ [y/n]? " yn
