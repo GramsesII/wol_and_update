@@ -45,13 +45,13 @@ main(){
 				echo -ne $SEC="$SEC_COLOR"
 					while [ $SEC -ge 0 ]; do
 						if [ "$SEC" -le "30" ]; then
-						SEC_COLOR="${YELLOW}"
-					fi
+							SEC_COLOR="${YELLOW}"
+						fi
 						if [ "$SEC" -le "15" ]; then
-						SEC_COLOR="${GREEN}"
-					fi
-						printf "\r${RESET}seconds to finished reboot: $SEC_COLOR%02d$RESET" "$SEC"
-						let "SEC=SEC-1"
+							SEC_COLOR="${GREEN}"
+						fi
+							printf "\r${RESET}seconds to finished reboot: $SEC_COLOR%02d$RESET" "$SEC"
+							let "SEC=SEC-1"
 						sleep 1
 					done
 				echo -e "${RESET}\n"
@@ -88,16 +88,11 @@ exit 0
                     read -p "Want to keep it? [y/n/c]: " ync
                     case $ync in
                         [Yy]* ) mv -f ./$F2 ./$F2-old; review > $config; break;;
-                        [Nn]* ) clear; echo -en "OK,lets start over";input;;
+                        [Nn]* ) clear; echo -en "OK, let's start over";input;;
 						[Cc]* ) echo -en "OK, let's continue.\n"; return 0; break;;
                             * ) echo "Please answer yes,no or cancel.";;
                 esac
             done
-
-		#if [[ -s $F2 ]]; then echo -en "config present\nMaking a backup to '$F2-old'\n"; { mv -f ./$F2 ./$F2-old; }
-        #else
-        #    echo -en "no config insight move along, move along...\n"
-        #fi
     return 0
     }
 
@@ -174,8 +169,7 @@ echo -n "Checking dependencies... "
 
         echo -e "${GREEN}OK${RESET}\n"
 
-		unset failed
-		unset name
+		unset failed  name
 return 0
 		}
 
@@ -189,8 +183,7 @@ get_config(){
         	[ -f $name ] || { echo -en "${RED}FAIL${RESET}\n";deps=1; }
     	done
         	[[ $deps -ne 1 ]] && echo -e "${GREEN}OK${RESET}\n" || { echo -en "\nCreate a new wol_config.cfg from the wol_config_example.cfg\n";exit 1; }
-	unset name
-	unset deps
+	unset name deps
 
 	set -v
 		. "wol_config.cfg"
@@ -202,22 +195,8 @@ return 0
 	case "$1" in
 		r)
 			1stcheck
-#    		input
-#        		clear
-#        		echo -en "This will be your config file.\n"
-#            review
-#				echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
-
-#			while true; do
-#    				read -p "Wanna keep it ^_^ [y/n]? " yn
-#    				case $yn in
-#    					[Yy]* ) review > $config; break;;
-#    					[Nn]* ) input;;
-#    					    * ) echo "Please answer yes or no.";;
-#    			esac
-# 			done
                	echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
-		main
+			main
    		;;
 # "Help" section
         h)
