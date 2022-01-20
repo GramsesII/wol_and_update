@@ -8,7 +8,7 @@
 # This script is tested on Ubuntu 20.04 lts.
 # Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils)
 
-# Fancy variables no need to change these.
+# Internal variables do not change these.
 Ver=v1.666
 GREEN='\e[0;32m'
 RED='\e[0;31m'
@@ -19,6 +19,7 @@ config="config_file.cfg"
 F1=".1st"
 #F2=${config}
 F2="config_file.cfg"
+# Internal variables end.
 
 main(){
 	log
@@ -38,6 +39,7 @@ main(){
 		echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
 #			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
 		echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
+# Start of reboot counter
 			tput civis
 				echo -ne $SEC="$SEC_COLOR"
 					while [ $SEC -ge 0 ]; do
@@ -53,6 +55,7 @@ main(){
 					done
 				echo -e "${RESET}\n"
 			tput cnorm
+# End of reboot counter
 		echo -e "${GREEN}Target rebooted, lets suspend it until next update.${RESET}\n"
 #			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend'
 		echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n"
@@ -61,18 +64,44 @@ echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
 exit 0
 	}
 
-check(){
+1stcheck(){
+# Check if this is the first start and if there are an old config file.
     if ! [[ -f $F1 ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
         else main;
     fi
-        if [[ -s $F2 ]]; then echo -en "config present\nMaking a backup to '$F2-old'\n"; { mv -f ./$F2 ./$F2-old; }
-        else
-            echo -en "no config insight move along, move along...\n"
-        fi
+        if [[ -s $F2 ]]; then while true; do
+			read -p "Want to keep your old config? [Y/n]: " yn
+            	case $yn in
+                        [Yy]* ) return 0; break;;
+                        [Nn]* ) break;;
+                            * ) echo "Please answer yes or no.";;
+                    esac
+				done
+		fi
+			input
+			clear
+                echo -en "This will be your config file.\n"
+            review
+
+            while true; do
+                    read -p "Want to keep it? [y/n/c]: " ync
+                    case $ync in
+                        [Yy]* ) mv -f ./$F2 ./$F2-old; review > $config; break;;
+                        [Nn]* ) clear; echo -en "OK,lets start over";input;;
+						[Cc]* ) echo -en "OK, let's continue.\n"; return 0; break;;
+                            * ) echo "Please answer yes,no or cancel.";;
+                esac
+            done
+
+		#if [[ -s $F2 ]]; then echo -en "config present\nMaking a backup to '$F2-old'\n"; { mv -f ./$F2 ./$F2-old; }
+        #else
+        #    echo -en "no config insight move along, move along...\n"
+        #fi
     return 0
     }
 
 input(){
+# Auto configure inputs
         echo -en "\nTarget Broadcast IP (i.e 192.168.0.255, get by running 'fconfig' on the target machine).\n";
         read -p ": " BROADCAST;
         echo -en "\nTarget IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running 'ifconfig' on the target machine).\n";
@@ -97,6 +126,7 @@ input(){
     }
 
 review(){
+# Config file part..
     echo -en "
 # Start of auto configured '$config'\n
 # More info about this config in 'wol_config_example.cfg'\n
@@ -170,24 +200,25 @@ return 0
 # Program starts here.
 	case "$1" in
 		r)
-			check
-    		input
-        		clear
-        		echo -en "This will be your config file.\n"
-            review
-				echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
+			1stcheck
+#    		input
+#        		clear
+#        		echo -en "This will be your config file.\n"
+#            review
+#				echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
 
-			while true; do
-    				read -p "Wanna keep it ^_^ [y/n]? " yn
-    				case $yn in
-    					[Yy]* ) review > $config; break;;
-    					[Nn]* ) input;;
-    					    * ) echo "Please answer yes or no.";;
-    			esac
- 			done
-	main
+#			while true; do
+#    				read -p "Wanna keep it ^_^ [y/n]? " yn
+#    				case $yn in
+#    					[Yy]* ) review > $config; break;;
+#    					[Nn]* ) input;;
+#    					    * ) echo "Please answer yes or no.";;
+#    			esac
+# 			done
+               	echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
+		main
    		;;
-# Help section
+# "Help" section
         h)
         	for name in README.txt
         	do
