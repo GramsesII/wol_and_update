@@ -123,7 +123,7 @@ input(){
 
 review(){
 # Config file part..
-    echo -en "
+    echo -en "\n
 # Start of auto configured '$config'\n
 # More info about this config in 'wol_config_example.cfg'\n
 BROADCAST=$BROADCAST\n
@@ -191,6 +191,17 @@ get_config(){
 return 0
 		}
 
+yeano(){
+        read -p "$text [y/n]? " yn
+            case $yn in
+                [Yy]* ) eval $1;;
+                [Nn]* ) eval $2;;
+                    * ) echo "Yes or no please.";;
+            esac
+        unset text y1 n1
+    return 0
+        }
+
 # Program starts here.
 	case "$1" in
 		r)
@@ -217,19 +228,27 @@ return 0
             	    [[ $deps -ne 1 ]] && cat LICENSE.txt || { exit 1; }
         ;;
         c)
-        	echo -n "Checking for user config... "
+			text="Do you Want to create one from 'wol_config_example.cfg' "
+			y1="cp ./wol_config_example.cfg ./wol_config.cfg && nano -AKGPgmwpT 4 ./wol_config.cfg"
+			n1="exit 1"
+        	echo -en "Checking for user config... \n\n"
         	for name in wol_config.cfg
         	do
             	    [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
         	done
-            	    [[ $deps -ne 1 ]] && cat wol_config.cfg || { while true; do
-                	read -p "Do you Want to create one from 'wol_config_example.cfg' [y/n]? " yn
-                	case $yn in
-                    	[Yy]* ) cp ./wol_config_example.cfg ./wol_config.cfg; nano -AKGPgmwpT 4 ./wol_config.cfg; break;;
-                    	[Nn]* ) exit 1;;
-                    		* ) echo "Please answer yes or no.";;
-                	esac
-    		done ;}
+            	    [[ $deps -ne 1 ]] && cat wol_config.cfg || yeano "y1" "n1";
+
+#yeano "$y1" "$n1"
+
+#					{ while true; do
+#                	read -p "Do you Want to create one from 'wol_config_example.cfg' [y/n]? " yn
+#                	case $yn in
+#                    	[Yy]* ) cp ./wol_config_example.cfg ./wol_config.cfg; nano -AKGPgmwpT 4 ./wol_config.cfg; break;;
+#                    	[Nn]* ) exit 1;;
+##                    		* ) echo "Please answer yes or no.";;
+#                	esac
+#
+#    		done ;}
         ;;
         e)
     		for name in wol_config.cfg
