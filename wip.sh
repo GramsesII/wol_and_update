@@ -5,9 +5,9 @@
 #  Author: "Christian Berg <gramse@pln.nu> (https://pln.nu/)"
 #  Contributor(s): "That there decent man over there"
 
-# A simple Wake on Lan and update a target machine script.
-# This script is tested on Ubuntu 20.04 lts.
-# Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils)
+#  A simple Wake on Lan and update a target machine script.
+#  This script is tested on Ubuntu 20.04 lts.
+#  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils)
 
 # Internal variables do not change these.
 Ver=v1.666
@@ -16,10 +16,8 @@ RED='\e[0;31m'
 YELLOW='\e[0;33m'
 RESET='\e[0m'
 SEC_COLOR=${RED}
-config="config_file.cfg"
-F1=".1st"
-#F2=${config}
-F2="config_file.cfg"
+config="wol_config.cfg"
+F1rst=".1st"
 # Internal variables end.
 
 main(){
@@ -67,17 +65,13 @@ exit 0
 
 1stcheck(){
 # Check if this is the first start and if there are an old config file.
-    if ! [[ -f $F1 ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
+    if ! [[ -f $F1rst ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
         else main;
     fi
-        if [[ -s $F2 ]]; then while true; do
-			read -p "Want to keep your old config? [Y/n]: " yn
-            	case $yn in
-                        [Yy]* ) return 0; break;;
-                        [Nn]* ) break;;
-                            * ) echo "Please answer yes or no.";;
-                    esac
-				done
+		text='Want to keep your old config. '
+		y1='return 0 && break'
+		n1='break'
+        if [[ -s $config ]]; then { yeano "$y1" "$n1"; }
 		fi
 			input
 			clear
@@ -87,7 +81,7 @@ exit 0
             while true; do
                     read -p "Want to keep it? [y/n/c]: " ync
                     case $ync in
-                        [Yy]* ) mv -f ./$F2 ./$F2-old; review > $config; break;;
+                        [Yy]* ) mv -f ./$config ./$config-old; review > $config; break;;
                         [Nn]* ) clear; echo -en "OK, let's start over";input;;
 						[Cc]* ) echo -en "OK, let's continue.\n"; return 0; break;;
                             * ) echo "Please answer yes,no or cancel.";;
@@ -98,7 +92,7 @@ exit 0
 
 input(){
 # Auto configure inputs
-        echo -en "\nTarget Broadcast IP (i.e 192.168.0.255, get by running 'fconfig' on the target machine).\n";
+        echo -en "\nTarget Broadcast IP (i.e 192.168.0.255, get by running 'ifconfig' on the target machine).\n";
         read -p ": " BROADCAST;
         echo -en "\nTarget IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running 'ifconfig' on the target machine).\n";
         read -p ": " MAC;
@@ -125,7 +119,7 @@ review(){
 # Config file part..
     echo -en "\n
 # Start of auto configured '$config'\n
-# More info about this config in 'wol_config_example.cfg'\n
+# More info about this config in '$config_example.cfg'\n
 BROADCAST=$BROADCAST\n
 MAC=$MAC\n
 TARGET=$TARGET\n
@@ -178,7 +172,7 @@ get_config(){
 	cd $DIR
 # Checking if user config file are present.
 	echo -n "Checking for user config... "
-    	for name in wol_config.cfg
+    	for name in $config
     	do
         	[ -f $name ] || { echo -en "${RED}FAIL${RESET}\n";deps=1; }
     	done
@@ -186,7 +180,7 @@ get_config(){
 	unset name deps
 
 	set -v
-		. "wol_config.cfg"
+		. "$config"
 	set +v # Please ignore this row in the logfile.
 return 0
 		}
@@ -232,30 +226,18 @@ yeano(){
 			y1="cp ./wol_config_example.cfg ./wol_config.cfg && nano -AKGPgmwpT 4 ./wol_config.cfg"
 			n1="exit 1"
         	echo -en "Checking for user config... \n\n"
-        	for name in wol_config.cfg
+        	for name in $config
         	do
             	    [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
         	done
-            	    [[ $deps -ne 1 ]] && cat wol_config.cfg || yeano "y1" "n1";
-
-#yeano "$y1" "$n1"
-
-#					{ while true; do
-#                	read -p "Do you Want to create one from 'wol_config_example.cfg' [y/n]? " yn
-#                	case $yn in
-#                    	[Yy]* ) cp ./wol_config_example.cfg ./wol_config.cfg; nano -AKGPgmwpT 4 ./wol_config.cfg; break;;
-#                    	[Nn]* ) exit 1;;
-##                    		* ) echo "Please answer yes or no.";;
-#                	esac
-#
-#    		done ;}
+            	    [[ $deps -ne 1 ]] && cat $config || { yeano "$y1" "$n1"; }
         ;;
         e)
-    		for name in wol_config.cfg
+    		for name in $config
         	do
               	  [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
         	done
-            	  [[ $deps -ne 1 ]] && nano -AKGPgmwpT 4 ./wol_config.cfg || { exit 1; }
+            	  [[ $deps -ne 1 ]] && nano -AKGPgmwpT 4 ./$config || { exit 1; }
         ;;
         *)
                 echo -en "Usage: ./WoL.sh {c|e|h|l|r|v}\n"
@@ -263,5 +245,6 @@ yeano(){
 		exit 1
                 ;;
 	esac
+		unset name deps
 exit 0
 #EoF
