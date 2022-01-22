@@ -60,6 +60,7 @@ main(){
 		echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n"
 
 echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
+echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
 exit 0
 	}
 
@@ -69,8 +70,8 @@ exit 0
         else main;
     fi
 		text='Want to keep your old config. '
-		y1='return 0 && break'
-		n1='break'
+		y1='main'
+		n1='break 2>/dev/null'
         if [[ -s $config ]]; then { yeano "$y1" "$n1"; }
 		fi
 			input
@@ -81,11 +82,27 @@ exit 0
             while true; do
                     read -p "Want to keep it? [y/n/c]: " ync
                     case $ync in
-                        [Yy]* ) mv -f ./$config ./$config-old; review > $config; break;;
-                        [Nn]* ) clear; echo -en "OK, let's start over";input;;
-						[Cc]* ) echo -en "OK, let's continue.\n"; return 0; break;;
-                            * ) echo "Please answer yes,no or cancel.";;
-                esac
+                        [Yy]* )
+							mv -f ./$config ./$config-old
+							review > $config
+							break
+						;;
+                        [Nn]* )
+							clear
+							echo -en "OK, let's start over"
+							input
+							clear
+							echo -en "This will be your config file.\n"
+							review
+						;;
+						[Cc]* )
+							echo -en "\nOK, let's end the suffering.\n"
+							exit 0
+						;;
+                            * )
+							echo "Please answer yes,no or cancel."
+						;;
+                	esac
             done
     return 0
     }
@@ -119,7 +136,7 @@ review(){
 # Config file part..
     echo -en "\n
 # Start of auto configured '$config'\n
-# More info about this config in '$config_example.cfg'\n
+# More info about this config in 'wol_config_example.cfg'\n
 BROADCAST=$BROADCAST\n
 MAC=$MAC\n
 TARGET=$TARGET\n
@@ -200,7 +217,6 @@ yeano(){
 	case "$1" in
 		r)
 			1stcheck
-               	echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
 			main
    		;;
 # "Help" section
