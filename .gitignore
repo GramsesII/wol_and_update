@@ -1,5 +1,5 @@
 log/*.log
 test_code/*
 .1st
-config_file.cfg
-config_file.cfg-old
+wol_config.cfg
+wol_config.cfg-old
