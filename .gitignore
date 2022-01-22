@@ -3,3 +3,4 @@ test_code/*
 .1st
 wol_config.cfg-old
 wol_config.cfg
+__pycache__/
