@@ -66,28 +66,28 @@ exit 0
 
 1stcheck(){
 # Check if this is the first start and if there are an old config file.
-    if ! [[ -f $F1rst ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
-        else main;
-    fi
+	if ! [[ -f $F1rst ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
+		else main;
+	fi
 		text='Want to keep your old config. '
 		y1='main'
 		n1='break 2>/dev/null'
-        if [[ -s $config ]]; then { yeano "$y1" "$n1"; }
+		if [[ -s $config ]]; then { yeano "$y1" "$n1"; }
 		fi
 			input
 			clear
-                echo -en "This will be your config file.\n"
-            review
+				echo -en "This will be your config file.\n"
+			review
 
-            while true; do
-                    read -p "Want to keep it? [y/n/c]: " ync
-                    case $ync in
-                        [Yy]* )
+			while true; do
+					read -p "Want to keep it? [y/n/c]: " ync
+					case $ync in
+						[Yy]* )
 							mv -f ./$config ./$config-old
 							review > $config
 							break
 						;;
-                        [Nn]* )
+						[Nn]* )
 							clear
 							echo -en "OK, let's start over"
 							input
@@ -99,13 +99,13 @@ exit 0
 							echo -en "\nOK, let's end the suffering.\n"
 							exit 0
 						;;
-                            * )
+							* )
 							echo "Please answer yes,no or cancel."
 						;;
-                	esac
-            done
-    return 0
-    }
+					esac
+			done
+	return 0
+	}
 
 input(){
 # Auto configure inputs
