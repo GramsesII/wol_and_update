@@ -10,7 +10,7 @@
 #  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils)
 
 # Internal variables do not change these.
-Ver=v1.666
+Ver=v1.666-a
 GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
@@ -55,12 +55,20 @@ main(){
 				echo -e "${RESET}\n"
 			tput cnorm
 # End of reboot counter
-		echo -e "${GREEN}Target rebooted, lets suspend it until next update.${RESET}\n"
-#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend'
-		echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n"
+		echo -e "${GREEN}Target rebooted${RESET}\n"
 
-echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
-echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
+# Check if we are interested in suspending the target or not.
+			if [[ $SUS = yes ]]; then
+				echo -e "Lets suspend target machine until next update.\n";
+#				ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
+				echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n";
+			fi
+			if [[ $SUS = no ]]; then
+				echo -e "Skipping the suspend step.\n";
+			fi
+
+echo -en "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
+echo -en "This file only lets the script 'wol.sh' know if it is the first start or not, please ignore." > .1st
 exit 0
 	}
 
@@ -129,9 +137,10 @@ input(){
         echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
         echo -en "Raise or lower this if needed (default SEC=60).\n";
         read -p ": " SEC;
+        echo -en "Do you want to suspend the target machine after the reboot? yes/no (default SUS=no).\n";
+		read -p ": " SUS;
     return 0
     }
-
 review(){
 # Config file part..
     echo -en "\n
@@ -145,6 +154,7 @@ IFNAME=$IFNAME\n
 USER=$USER\n
 RSA=$RSA\n
 SEC=$SEC\n
+SUS=$SUS\n
 # End of auto configured '$config'\n"
 return 0
     }
@@ -239,7 +249,7 @@ yeano(){
         ;;
         c)
 			text="Do you Want to create one from 'wol_config_example.cfg' "
-			y1="cp ./wol_config_example.cfg ./wol_config.cfg && nano -AKGPgmwpT 4 ./wol_config.cfg"
+			y1="cp ./wol_config_example.cfg ./wol_config.cfg && nano -T 4 ./wol_config.cfg"
 			n1="exit 1"
         	echo -en "Checking for user config... \n\n"
         	for name in $config
@@ -253,10 +263,10 @@ yeano(){
         	do
               	  [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
         	done
-            	  [[ $deps -ne 1 ]] && nano -AKGPgmwpT 4 ./$config || { exit 1; }
+            	  [[ $deps -ne 1 ]] && nano -T 4 ./$config || { exit 1; }
         ;;
         *)
-                echo -en "Usage: ./WoL.sh {c|e|h|l|r|v}\n"
+                echo -en "Usage: ./wol.sh {c|e|h|l|r|v}\n"
                 echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Run main script.\n v, Version.\n"
 		exit 1
                 ;;

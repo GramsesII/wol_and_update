@@ -9,7 +9,7 @@
 # Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils)
 
 # Fancy variables no need to change these.
-Ver=v1.666
+Ver=v1.666-a
 GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
