@@ -1,8 +1,8 @@
 Short explanation of files and dir(s). used by 'Wake on Lan and upgrade' script.
 --------------------------------------------------------------------------------
 
-This projekt are the result of me not wanting to typ 4 lines everytime I needed
-to update a backup machine running a html/team speak server. And i needed a
+This project is the result of me not wanting to type 4 lines every time I need
+to update a backup machine running a html/team speak server. And I needed a
 project to take my mind of things. This script is what it is, it was/is a fun
 project no more no less :) I am by no means a pro when we talk about making code.
 
@@ -18,7 +18,7 @@ l	-	Shows the License file.
 r	-	Run the main script
 v	-	Shows script version.
 
-WoL.sh					- Main script file. It's sould purpose is to wake up
+WoL.sh					- Main script file. It's sole purpose is to wake up
 						the target machine and run an package update/reboot
 						and suspend the target.
 
@@ -43,6 +43,6 @@ wip.sh					- Work in progress, used for testing things do not
 						Moved to develop branch only.
 
 .1st					- This file lets the scipt know if it is the first start
-						or not. If this file exist the script skippes alot of
+						or not. If this file exist the script skips alot of
 						code regarding to setup. NOTE. the script will still check
 						if a cofig file is present before running.
