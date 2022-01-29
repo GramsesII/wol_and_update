@@ -60,7 +60,7 @@ main(){
 		echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n"
 
 echo -e "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
-echo -en "This file only lets the script 'WoL.sh' know if it is the first start or not, please ignore." > .1st
+echo -en "This file only lets the script 'wol.sh' know if it is the first start or not, please ignore." > .1st
 exit 0
 	}
 
@@ -256,7 +256,7 @@ yeano(){
             	  [[ $deps -ne 1 ]] && nano -AKGPgmwpT 4 ./$config || { exit 1; }
         ;;
         *)
-                echo -en "Usage: ./WoL.sh {c|e|h|l|r|v}\n"
+                echo -en "Usage: ./wol.sh {c|e|h|l|r|v}\n"
                 echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Run main script.\n v, Version.\n"
 		exit 1
                 ;;
