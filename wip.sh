@@ -7,10 +7,11 @@
 
 #  A simple Wake on Lan and update a target machine script.
 #  This script is tested on Ubuntu 20.04 lts.
+#  Target machine depends on: ssh (openssh-client ), systemctl (systemd), apt-get
 #  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils)
 
 # Internal variables do not change these.
-Ver=v1.666-a
+VER="v1.666-a"
 GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
@@ -22,7 +23,7 @@ F1rst=".1st"
 
 main(){
 	log
-		echo -e "Wake on Lan and update ${YELLOW}$Ver${RESET} - ${GREEN}started${RESET}: $(date)\n"
+		echo -e "Wake on Lan and update ${YELLOW}$VER${RESET} - ${GREEN}started${RESET}: $(date)\n"
 	check_dep
 
 # //Start of config\\
@@ -34,7 +35,44 @@ main(){
 #		sudo etherwake -i $IFNAME $MAC -b $BROADCAST
 #		sleep 5
 		echo -e "${GREEN}Target gone woke, lets update it.${RESET}\n"
-#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update; sudo apt-get -y upgrade'
+#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
+
+APTCHECK="/usr/lib/update-notifier/apt-check"
+check_data=$($APTCHECK 2>&1)
+regex="^([0-9]+);([0-9]+)$"
+
+ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo $APTCHECK
+
+ if [[ "$check_data" =~ $regex ]]
+ then
+   if [[ ${BASH_REMATCH[1]} -ne 0 ]] || [[ ${BASH_REMATCH[2]} -ne 0 ]]
+   then
+     exit 0
+   fi
+ fi
+
+ exit 1
+
+
+			update
+
+# Check if we are interested in suspending the target or not.
+			if [[ $SUS = yes ]]; then
+				echo -e "Lets suspend target machine until next update.\n";
+#				ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
+				echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n";
+			fi
+			if [[ $SUS = no ]]; then
+				echo -e "Skipping the suspend step.\n";
+			fi
+
+echo -en "Wake on Lan ${YELLOW}$VER${RESET} - ${RED}stop${RESET}: $(date)\n"
+echo -en "This file only lets the script 'wol.sh' know if it is the first start or not, please ignore." > .1st
+exit 0
+	}
+
+update(){
+#			ssh -i @RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
 		echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
 #			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
 		echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
@@ -56,21 +94,8 @@ main(){
 			tput cnorm
 # End of reboot counter
 		echo -e "${GREEN}Target rebooted${RESET}\n"
-
-# Check if we are interested in suspending the target or not.
-			if [[ $SUS = yes ]]; then
-				echo -e "Lets suspend target machine until next update.\n";
-#				ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
-				echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n";
-			fi
-			if [[ $SUS = no ]]; then
-				echo -e "Skipping the suspend step.\n";
-			fi
-
-echo -en "Wake on Lan ${YELLOW}$Ver${RESET} - ${RED}stop${RESET}: $(date)\n"
-echo -en "This file only lets the script 'wol.sh' know if it is the first start or not, please ignore." > .1st
-exit 0
-	}
+	return
+		}
 
 1stcheck(){
 # Check if this is the first start and if there are an old config file.
@@ -238,7 +263,7 @@ yeano(){
         	        [[ $deps -ne 1 ]] && cat README.txt || { exit 1; }
         ;;
         v)
-        	echo -e "$Ver"
+        	echo -e "$VER"
         ;;
         l)
         	for name in LICENSE.txt
