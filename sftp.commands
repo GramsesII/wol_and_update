@@ -1,0 +1,7 @@
+lcd /up-dev/
+cd /home/gramse
+put ./wol_uppy.sh ./
+put ./wol_uppy.txt ./
+get ./.wol_answer ./
+
+exit

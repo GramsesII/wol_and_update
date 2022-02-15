@@ -1,0 +1,8 @@
+To Do:
+
+explain wol_uppy.sh
+explain .wol_answer
+wol_uppy.txt
+
+If these files are left here they are safe to remove.
+EoF
