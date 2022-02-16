@@ -34,27 +34,27 @@ main(){
 	echo -e "${GREEN}Waking target up.${RESET}\n"
 #		sudo etherwake -i $IFNAME $MAC -b $BROADCAST
 #		sleep 5
-		echo -e "${GREEN}Target gone woke, lets update it.${RESET}\n"
-#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
 
-APTCHECK="/usr/lib/update-notifier/apt-check"
-check_data=$($APTCHECK 2>&1)
-regex="^([0-9]+);([0-9]+)$"
+# SFTP part here
+# Should we? or should we not! update, thats! the question.
 
-ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo $APTCHECK
+echo -e "${GREEN}Target gone woke, checking for updates.${RESET}\n"
 
- if [[ "$check_data" =~ $regex ]]
- then
-   if [[ ${BASH_REMATCH[1]} -ne 0 ]] || [[ ${BASH_REMATCH[2]} -ne 0 ]]
-   then
-     exit 0
-   fi
+ sftp -i $RSA -b ./sftp.push -P$PORT $SFTPUSER@$TARGET
+ ssh -i $RSA -l $USER $TARGET -p $PORT '/home/gramse/wol_uppy/wol_uppy.sh'
+ sftp -i $RSA -b ./sftp.pull -P$PORT $SFTPUSER@$TARGET
+
+ a1=`cat wol_answer`
+ echo $a1
+ if [[ $a1 = yes ]]; then
+ echo -en "\nparty let's update.\n"
+ update
  fi
+     if [[ $a1 = no ]]; then
+     echo -en "\nsorry better luck next time, no party for you this time.\n"
+     fi
+ rm -f ./wol_answer
 
- exit 1
-
-
-			update
 
 # Check if we are interested in suspending the target or not.
 			if [[ $SUS = yes ]]; then
@@ -72,7 +72,9 @@ exit 0
 	}
 
 update(){
-#			ssh -i @RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
+		echo -e "${GREEN}Ok, lets update.${RESET}\n"
+#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
+#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
 		echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
 #			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
 		echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
@@ -148,7 +150,7 @@ input(){
         read -p ": " MAC;
         echo -en "\nTarget machines IP4 number.\n";
         read -p ": " TARGET;
-        echo -en "\nTarget machines SSH port (default 22).\n";
+        echo -en "\nTarget machines SSH port (default for SSH is 22).\n";
         read -p ": " PORT;
         echo -en "\nThe name of your local machines network interface (i.e eth0 or enp3s0).\n";
         read -p ": " IFNAME;
@@ -157,6 +159,8 @@ input(){
         echo -en "set in /etc/sudoers file on the target machine, this so you dont need to type in passwords 'all' the time.\n";
         echo -en "NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).\n";
         read -p ": " USER;
+		echo -en "Your username for SFTP";
+		read -p ": " SFTPUSER;
         echo -en "\nWere your SSH RSA key file are located on the local machine.\n";
         read -p ": " RSA;
         echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
@@ -177,6 +181,7 @@ TARGET=$TARGET\n
 PORT=$PORT\n
 IFNAME=$IFNAME\n
 USER=$USER\n
+SFTPUSER=$SFTPUSER\n
 RSA=$RSA\n
 SEC=$SEC\n
 SUS=$SUS\n

@@ -5,7 +5,7 @@ the * idicates done parts of TODO
 * split or something sftp.commands to one push part and one pull part. else decent gets cranky! ;)
 * fix wol_uppy.txt
 marry sftp.sh into wip.sh
-add sftp.push, sftp.pull, wol_uppy.txt to git
+* add sftp.push, sftp.pull, wol_uppy.txt to git
 add new $sftp_user to config and autoconfig
 add new DEPENDS on: sftp (target and main)
 explain new files (wol_uppy.txt, sftp.push/pull) in README.txt

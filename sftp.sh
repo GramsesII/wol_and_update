@@ -1,9 +1,9 @@
 #!/bin/bash
 . wol_config.cfg
 sftp_user='gramse'
-sftp -i $RSA -b ./sftp.push -P$PORT $sftp_user@$TARGET
+sftp -i $RSA -b ./sftp.push -P$PORT $SFTPUSER@$TARGET
 ssh -i $RSA -l $USER $TARGET -p $PORT '/home/gramse/wol_uppy/wol_uppy.sh'
-sftp -i $RSA -b ./sftp.pull -P$PORT $sftp_user@$TARGET
+sftp -i $RSA -b ./sftp.pull -P$PORT $SFTPUSER@$TARGET
 
 a1=`cat wol_answer`
 echo $a1
