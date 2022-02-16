@@ -1,8 +1,14 @@
-To Do:
 
-explain wol_uppy.sh
-explain .wol_answer
-wol_uppy.txt
+https://github.com/GramsesII/wol_and_update
 
-If these files are left here they are safe to remove.
+There were problably a disaster, like asteroids attacking earth or something similar
+happening while someone run "wol.sh" (wake on lan and update) on a remote machine, 
+to update this machine. so if these files are left here they and this directory 
+are safe to remove if you like.
+
+./wol_uppy		-	The "directory".
+wol_uppy.txt	-	This file.
+wol_upp.sh		-	Checks if this machine has uninstalled updates to be done or not.
+wol_answer		-	A file made by "wol_uppy.sh" and 
+					where supposed to be sent back to the other side.
 EoF
