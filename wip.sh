@@ -2,15 +2,15 @@
 
 #  develop branch
 #  License: "(MIT)", (see LICENSE.txt for more info)
-#  Author: "Christian Berg <gramse@pln.nu> (https://pln.nu/)"
+#  Author: "Christian Berg <gramse@pln.nu> (https://github.com/GramsesII/wol_and_update)"
 #  Contributor(s): "That there decent man over there"
 
 #  A simple Wake on Lan and update a target machine script.
 #  This script is tested on Ubuntu 20.04 lts.
-#  Target machine depends on: ssh (openssh-client ), systemctl (systemd), apt-get
-#  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils)
+#  Target machine depends on: ssh (openssh-client ), systemctl (systemd), apt-get, sftp (server).
+#  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client).
 
-# Internal variables do not change these.
+# //Internal variables change at your own risk.\\
 VER="v1.666-a"
 GREEN='\e[0;32m'
 RED='\e[0;31m'
@@ -19,7 +19,12 @@ RESET='\e[0m'
 SEC_COLOR=${RED}
 config="wol_config.cfg"
 F1rst=".1st"
-# Internal variables end.
+DO_RUN=0	#DO we actually run all commands.
+# 1= run all.
+# 0= skip all ssh, sftp, etherwake commands.
+# This is for testing purposes only, not for the actually wol.sh script.
+
+# \\Internal variables end.//
 
 main(){
 	log
@@ -32,38 +37,36 @@ main(){
 
 # Start of the magic (magic packet, get it? ;).
 	echo -e "${GREEN}Waking target up.${RESET}\n"
-#		sudo etherwake -i $IFNAME $MAC -b $BROADCAST
-#		sleep 5
+	[[ $DO_RUN -eq 1 ]] &&	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
+	[[ $DO_RUN -eq 1 ]] &&	sleep 5s
 
-# SFTP part here
 # Should we? or should we not! update, thats! the question.
-
 echo -e "${GREEN}Target gone woke, checking for updates.${RESET}\n"
 
- sftp -i $RSA -b ./sftp.push -P$PORT $SFTPUSER@$TARGET
- ssh -i $RSA -l $USER $TARGET -p $PORT '/home/gramse/wol_uppy/wol_uppy.sh'
- sftp -i $RSA -b ./sftp.pull -P$PORT $SFTPUSER@$TARGET
+ [[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./sftp.push -P$PORT $SFTPUSER@$TARGET
+ [[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '/home/gramse/wol_uppy/wol_uppy.sh'
+ [[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./sftp.pull -P$PORT $SFTPUSER@$TARGET
 
  a1=`cat wol_answer`
  echo $a1
  if [[ $a1 = yes ]]; then
- echo -en "\nparty let's update.\n"
+ echo -en "\n${GREEN}party let's update.${RESET}\n"
  update
  fi
      if [[ $a1 = no ]]; then
-     echo -en "\nsorry better luck next time, no party for you this time.\n"
+     echo -en "\n${RED}sorry no updates this time, no party for you.${RESET}\n"
      fi
+# cleaning up
  rm -f ./wol_answer
-
 
 # Check if we are interested in suspending the target or not.
 			if [[ $SUS = yes ]]; then
-				echo -e "Lets suspend target machine until next update.\n";
-#				ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
+				echo -e "${GREEN}Lets suspend target machine until next update.${RESET}\n";
+				[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
 				echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n";
 			fi
 			if [[ $SUS = no ]]; then
-				echo -e "Skipping the suspend step.\n";
+				echo -e "${GREEN}Skipping the suspend step.${RESET}\n";
 			fi
 
 echo -en "Wake on Lan ${YELLOW}$VER${RESET} - ${RED}stop${RESET}: $(date)\n"
@@ -73,10 +76,10 @@ exit 0
 
 update(){
 		echo -e "${GREEN}Ok, lets update.${RESET}\n"
-#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
-#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
+			[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
+			[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
 		echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
-#			ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
+			[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
 		echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
 # Start of reboot counter
 			tput civis
@@ -90,7 +93,7 @@ update(){
 						fi
 							printf "\r${RESET}seconds to finished reboot: $SEC_COLOR%02d$RESET" "$SEC"
 							let "SEC=SEC-1"
-						sleep 1
+						sleep 1s
 					done
 				echo -e "${RESET}\n"
 			tput cnorm
@@ -124,18 +127,18 @@ update(){
 						;;
 						[Nn]* )
 							clear
-							echo -en "OK, let's start over"
+							echo -en "${GREEN}OK, let's start over${RESET}"
 							input
 							clear
-							echo -en "This will be your config file.\n"
+							echo -en "${GREEN}This will be your config file.${RESET}\n"
 							review
 						;;
 						[Cc]* )
-							echo -en "\nOK, let's end the suffering.\n"
+							echo -en "\n${GREEN}OK, let's end the suffering.${RESET}\n"
 							exit 0
 						;;
 							* )
-							echo "Please answer yes,no or cancel."
+							echo -en "Please answer ${YELLOW}yes${RESET},${YELLOW}no${RESET} or ${YELLOW}cancel${RESET}."
 						;;
 					esac
 			done
@@ -159,12 +162,12 @@ input(){
         echo -en "set in /etc/sudoers file on the target machine, this so you dont need to type in passwords 'all' the time.\n";
         echo -en "NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).\n";
         read -p ": " USER;
-		echo -en "Your username for SFTP";
+		echo -en "\nYour username for SFTP\n";
 		read -p ": " SFTPUSER;
         echo -en "\nWere your SSH RSA key file are located on the local machine.\n";
         read -p ": " RSA;
         echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
-        echo -en "Raise or lower this if needed (default SEC=60).\n";
+        echo -en "Raise or lower this if needed (SEC=60 will proplably do in most cases).\n";
         read -p ": " SEC;
         echo -en "Do you want to suspend the target machine after the reboot? yes/no (default SUS=no).\n";
 		read -p ": " SUS;
@@ -172,18 +175,18 @@ input(){
     }
 review(){
 # Config file part..
-    echo -en "\n
-# Start of auto configured '$config'\n
+    echo -en "
+# Start of auto configured '$config'
 # More info about this config in 'wol_config_example.cfg'\n
-BROADCAST=$BROADCAST\n
-MAC=$MAC\n
-TARGET=$TARGET\n
-PORT=$PORT\n
-IFNAME=$IFNAME\n
-USER=$USER\n
-SFTPUSER=$SFTPUSER\n
-RSA=$RSA\n
-SEC=$SEC\n
+BROADCAST=$BROADCAST
+MAC=$MAC
+TARGET=$TARGET
+PORT=$PORT
+IFNAME=$IFNAME
+USER=$USER
+SFTPUSER=$SFTPUSER
+RSA=$RSA
+SEC=$SEC
 SUS=$SUS\n
 # End of auto configured '$config'\n"
 return 0
@@ -195,7 +198,7 @@ log(){
     	if [ ! -d "./log" ]; then
         	mkdir -v ./log;
     	fi
-# Continuing on with the log code.
+# Some more logfile witchcraftery.
 	log=./log/"$(date +"%F-%T").log"
 		touch $log
 	exec 3>&1 4>&2
@@ -208,15 +211,15 @@ check_dep(){
 # Checking for some needed programs.
 failed=0
 echo -n "Checking dependencies... "
-        for name in etherwake tee ssh systemctl
+        for name in etherwake tee ssh systemctl sftp
         do
                 if ! [[ $(which $name 2>/dev/null) ]]; then
                         [[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
                         failed=1
-                        echo -en "\n$name needs to be installed. Use 'sudo apt-get install $name'"
+                        echo -en "\n$${YELLOW}name needs to be installed. Use 'sudo apt-get install $name'${RESET}"
                 fi
         done
-        [[ $failed -eq 1 ]] && echo -en "\n\nInstall the above and rerun this script\n" && exit 1;
+        [[ $failed -eq 1 ]] && echo -en "\n\n${YELLOW}Install the above and rerun this script${RESET}\n" && exit 1;
 
         echo -e "${GREEN}OK${RESET}\n"
 
@@ -278,7 +281,7 @@ yeano(){
             	    [[ $deps -ne 1 ]] && cat LICENSE.txt || { exit 1; }
         ;;
         c)
-			text="Do you Want to create one from 'wol_config_example.cfg' "
+			text="Do you Want to manually create one from 'wol_config_example.cfg' "
 			y1="cp ./wol_config_example.cfg ./wol_config.cfg && nano -T 4 ./wol_config.cfg"
 			n1="exit 1"
         	echo -en "Checking for user config... \n\n"
