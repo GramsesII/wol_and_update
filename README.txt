@@ -51,6 +51,21 @@ log (DIR.)				- Where the log files are saved, if not present at
 							  is present before running.
 
 
+wol_uppy.sh				Runs a test on the target machine to see if there are
+						any new updates that needs to be installed.
+						
+wol_uppy.txt			This file only explains what the dir. (wol_uppy),
+						wol_uppy.sh/txt and wol_answer are and why they are there
+						incase my script fails to remove them from the target machine.
+						
+sftp.push				Directs sftp to were to push "wol_uppy.sh and wol_uppy.txt"
+
+sftp.pull				Tells sftp to pull "wol_answer" from the target maschine,
+						and cleans up what was dun in sftp.push.
+
+TODO.txt				My reminder  of what to do. Will problably be moved
+						to develop branch in the future.
+						
 						In develop branch there is also this file.
 						------------------------------------------
 

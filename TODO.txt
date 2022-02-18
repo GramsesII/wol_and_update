@@ -8,6 +8,7 @@ the * idicates done parts of TODO
 * add sftp.push, sftp.pull, wol_uppy.txt to git
 * add new $sftp_user to config and autoconfig
 * add new DEPENDS on: sftp (target and main)
-explain new files (wol_uppy.txt, sftp.push/pull) in README.txt
+* explain new files (wol_uppy.txt, sftp.push/pull) in README.txt
+checkout sudo apt-get -o Dpkg::Progress-Fancy="1" install "package" for some extra flare.
 
 EoF
