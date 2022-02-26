@@ -1,7 +1,0 @@
-lcd /up-dev/
-cd /home/gramse
-mkdir ./wol_uppy
-cd wol_uppy
-put ./wol_uppy.sh ./
-put ./wol_uppy.txt ./
-exit

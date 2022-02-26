@@ -1,0 +1,6 @@
+lcd /up-dev
+cd
+mkdir ./wol_uppy
+cd wol_uppy
+put ./wol_uppy/wol_uppy.sh ./
+put ./wol_uppy/wol_uppy.txt ./

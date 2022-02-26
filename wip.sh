@@ -17,7 +17,7 @@ RED='\e[0;31m'
 YELLOW='\e[0;33m'
 RESET='\e[0m'
 SEC_COLOR=${RED}
-config="wol_config.cfg"
+config="./config/wol_config.cfg"
 F1rst=".1st"
 DO_RUN=0	#DO we actually run all commands.
 # 1= run all.
@@ -43,12 +43,12 @@ main(){
 # Should we? or should we not! update, thats! the question.
 echo -e "${GREEN}Target gone woke, checking for updates.${RESET}\n"
 
- [[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./sftp.push -P$PORT $SFTPUSER@$TARGET
- [[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '/home/gramse/wol_uppy/wol_uppy.sh'
- [[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./sftp.pull -P$PORT $SFTPUSER@$TARGET
+[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.push -P$PORT $SFTPUSER@$TARGET
+[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '~/wol_uppy/wol_uppy.sh'
+[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.pull -P$PORT $SFTPUSER@$TARGET
 
- a1=`cat wol_answer`
- echo $a1
+ a1=`cat ./wol_answer`
+#  echo $a1
  if [[ $a1 = yes ]]; then
  echo -en "\n${GREEN}party let's update.${RESET}\n"
  update
@@ -282,7 +282,7 @@ yeano(){
         ;;
         c)
 			text="Do you Want to manually create one from 'wol_config_example.cfg' "
-			y1="cp ./wol_config_example.cfg ./wol_config.cfg && nano -T 4 ./wol_config.cfg"
+			y1="cp ./config/wol_config_example.cfg ./config/wol_config.cfg && nano -T 4 ./config/wol_config.cfg"
 			n1="exit 1"
         	echo -en "Checking for user config... \n\n"
         	for name in $config
