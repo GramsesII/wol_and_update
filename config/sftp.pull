@@ -1,0 +1,9 @@
+lcd /up-dev
+cd
+cd wol_uppy
+get wol_answer ./
+rm ./wol_uppy.sh
+rm ./wol_uppy.txt
+rm ./wol_answer
+cd ..
+rmdir wol_uppy
