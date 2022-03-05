@@ -36,28 +36,27 @@ main(){
 # \\End of config//
 
 # Start of the magic (magic packet, get it? ;).
-	echo -e "${GREEN}Waking target up.${RESET}\n"
+echo -e "${GREEN}Waking target up.${RESET}\n"
 	[[ $DO_RUN -eq 1 ]] &&	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
 	[[ $DO_RUN -eq 1 ]] &&	sleep 5s
+echo -e "${GREEN}Target gone woke.${RESET}\n"
 
 # Should we? or should we not! update, thats! the question.
-echo -e "${GREEN}Target gone woke, checking for updates.${RESET}\n"
-
-[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.push -P$PORT $SFTPUSER@$TARGET
-[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '~/wol_uppy/wol_uppy.sh'
-[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.pull -P$PORT $SFTPUSER@$TARGET
-
- a1=`cat ./wol_answer`
+echo -e "${GREEN}Checking for updates.${RESET}\n"
+	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.push -P$PORT $SFTPUSER@$TARGET
+	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '~/wol_uppy/wol_uppy.sh'
+	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.pull -P$PORT $SFTPUSER@$TARGET
+		a1=$(cat ./wol_answer)
 #  echo $a1
- if [[ $a1 = yes ]]; then
- echo -en "\n${GREEN}party let's update.${RESET}\n"
- update
- fi
-     if [[ $a1 = no ]]; then
-     echo -en "\n${RED}sorry no updates this time, no party for you.${RESET}\n"
-     fi
+	if [[ $a1 = yes ]]; then
+		echo -en "\n${GREEN}party let's update.${RESET}\n"
+	update
+	fi
+     	if [[ $a1 = no ]]; then
+     		echo -en "\n${RED}sorry no updates this time, no party for you.${RESET}\n"
+     	fi
 # cleaning up
- rm -f ./wol_answer
+rm -f ./wol_answer
 
 # Check if we are interested in suspending the target or not.
 			if [[ $SUS = yes ]]; then
@@ -75,12 +74,11 @@ exit 0
 	}
 
 update(){
-		echo -e "${GREEN}Ok, lets update.${RESET}\n"
-			[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
-			[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
-		echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
-			[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
-		echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
+		[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
+		[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
+			echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
+		[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
+			echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
 # Start of reboot counter
 			tput civis
 				echo -ne $SEC="$SEC_COLOR"
@@ -107,7 +105,7 @@ update(){
 	if ! [[ -f $F1rst ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
 		else main;
 	fi
-		text='Want to keep your old config. '
+		text='Do you want to keep your old config. '
 		y1='main'
 		n1='break 2>/dev/null'
 		if [[ -s $config ]]; then { yeano "$y1" "$n1"; }
@@ -173,6 +171,7 @@ input(){
 		read -p ": " SUS;
     return 0
     }
+
 review(){
 # Config file part..
     echo -en "
@@ -216,14 +215,12 @@ echo -n "Checking dependencies... "
                 if ! [[ $(which $name 2>/dev/null) ]]; then
                         [[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
                         failed=1
-                        echo -en "\n$${YELLOW}name needs to be installed. Use 'sudo apt-get install $name'${RESET}"
+                        echo -en "\n${YELLOW}name needs to be installed. Use 'sudo apt-get install $name'${RESET}"
                 fi
         done
         [[ $failed -eq 1 ]] && echo -en "\n\n${YELLOW}Install the above and rerun this script${RESET}\n" && exit 1;
-
-        echo -e "${GREEN}OK${RESET}\n"
-
-		unset failed  name
+	echo -e "${GREEN}OK${RESET}\n"
+unset failed  name
 return 0
 		}
 
@@ -238,7 +235,6 @@ get_config(){
     	done
         	[[ $deps -ne 1 ]] && echo -e "${GREEN}OK${RESET}\n" || { echo -en "\nCreate a new wol_config.cfg from the wol_config_example.cfg\n";exit 1; }
 	unset name deps
-
 	set -v
 		. "$config"
 	set +v # Please ignore this row in the logfile.
@@ -281,7 +277,7 @@ yeano(){
             	    [[ $deps -ne 1 ]] && cat LICENSE.txt || { exit 1; }
         ;;
         c)
-			text="Do you Want to manually create one from 'wol_config_example.cfg' "
+			text="Do you Want to manualy create one from 'wol_config_example.cfg' "
 			y1="cp ./config/wol_config_example.cfg ./config/wol_config.cfg && nano -T 4 ./config/wol_config.cfg"
 			n1="exit 1"
         	echo -en "Checking for user config... \n\n"
