@@ -8,7 +8,7 @@ are safe to remove if you like.
 
 ./wol_uppy		-	The "directory".
 wol_uppy.txt	-	This file.
-wol_upp.sh		-	Checks if this machine has uninstalled updates to be done or not.
+wol_upp.sh		-	Checks if this machine has waiting installed updates to be done or not.
 wol_answer		-	A file made by "wol_uppy.sh" and 
 					where supposed to be sent back to the other side.
 EoF

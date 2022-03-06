@@ -11,7 +11,7 @@
 #  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client).
 
 # //Internal variables change at your own risk.\\
-VER="v1.666-a"
+VER="v1.666-c"
 GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
@@ -19,6 +19,7 @@ RESET='\e[0m'
 SEC_COLOR=${RED}
 config="./config/wol_config.cfg"
 F1rst=".1st"
+WSEC="5"
 DO_RUN=0	#DO we actually run all commands.
 # 1= run all.
 # 0= skip all ssh, sftp, etherwake commands.
@@ -35,26 +36,47 @@ main(){
 	get_config
 # \\End of config//
 
+# Do we need to wake the target up berfore update?"
+if [[ $WAKEUP = yes ]]; then
 # Start of the magic (magic packet, get it? ;).
-echo -e "${GREEN}Waking target up.${RESET}\n"
-	[[ $DO_RUN -eq 1 ]] &&	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
-	[[ $DO_RUN -eq 1 ]] &&	sleep 5s
-echo -e "${GREEN}Target gone woke.${RESET}\n"
+	echo -e "\n${GREEN}Waking target up.${RESET}\n"
+		[[ $DO_RUN -eq 1 ]] &&	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
+# This next step might be unecessary, but just to be shure target is up and running before we try anything I'll leave this line in.
+		 tput civis
+                 echo -ne $WSEC="${SEC_COLOR}"
+                     while [ $WSEC -ge 0 ]; do
+                         if [ "$WSEC" -le "4" ]; then
+                             SEC_COLOR="${YELLOW}"
+                         fi
+                         if [ "$WSEC" -le "2" ]; then
+                             SEC_COLOR="${GREEN}"
+                         fi
+                             printf "\r${RESET}continues in: ${SEC_COLOR}%02d${RESET} seconds." "$WSEC"
+                             let "WSEC=WSEC-1"
+                         sleep 1s
+                     done
+                 echo -e "${RESET}\n"
+             tput cnorm
+	echo -e "${GREEN}Target gone woke.${RESET}\n"
+	fi
+if [[ $WAKEUP = no ]]; then
+	echo -en "\n${GREEN}Target allready supposed to be woke moving along${RESET}"
+	fi
 
 # Should we? or should we not! update, thats! the question.
 echo -e "${GREEN}Checking for updates.${RESET}\n"
 	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.push -P$PORT $SFTPUSER@$TARGET
 	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '~/wol_uppy/wol_uppy.sh'
 	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.pull -P$PORT $SFTPUSER@$TARGET
-		a1=$(cat ./wol_answer)
+	[[ $DO_RUN -eq 1 ]] && a1=$(cat ./wol_answer)
 #  echo $a1
 	if [[ $a1 = yes ]]; then
 		echo -en "\n${GREEN}party let's update.${RESET}\n"
-	update
-	fi
+		update
+		fi
      	if [[ $a1 = no ]]; then
      		echo -en "\n${RED}sorry no updates this time, no party for you.${RESET}\n"
-     	fi
+     		fi
 # cleaning up
 rm -f ./wol_answer
 
@@ -63,10 +85,10 @@ rm -f ./wol_answer
 				echo -e "${GREEN}Lets suspend target machine until next update.${RESET}\n";
 				[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
 				echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n";
-			fi
+				fi
 			if [[ $SUS = no ]]; then
 				echo -e "${GREEN}Skipping the suspend step.${RESET}\n";
-			fi
+				fi
 
 echo -en "Wake on Lan ${YELLOW}$VER${RESET} - ${RED}stop${RESET}: $(date)\n"
 echo -en "This file only lets the script 'wol.sh' know if it is the first start or not, please ignore." > .1st
@@ -81,7 +103,7 @@ update(){
 			echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
 # Start of reboot counter
 			tput civis
-				echo -ne $SEC="$SEC_COLOR"
+				echo -ne $SEC="${SEC_COLOR}"
 					while [ $SEC -ge 0 ]; do
 						if [ "$SEC" -le "30" ]; then
 							SEC_COLOR="${YELLOW}"
@@ -89,7 +111,7 @@ update(){
 						if [ "$SEC" -le "15" ]; then
 							SEC_COLOR="${GREEN}"
 						fi
-							printf "\r${RESET}seconds to finished reboot: $SEC_COLOR%02d$RESET" "$SEC"
+							printf "\r${RESET}Reboot done in: ${SEC_COLOR}%02d${RESET} seconds." "$SEC"
 							let "SEC=SEC-1"
 						sleep 1s
 					done
@@ -167,8 +189,10 @@ input(){
         echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
         echo -en "Raise or lower this if needed (SEC=60 will proplably do in most cases).\n";
         read -p ": " SEC;
-        echo -en "Do you want to suspend the target machine after the reboot? yes/no (default SUS=no).\n";
+        echo -en "\nDo you want to suspend the target machine after the reboot? (yes/no, if unsure set SUS=no).\n";
 		read -p ": " SUS;
+		echo -en "Are the target machine allready woke? (yes/no).\n";
+		read -p ": " WAKEUP;
     return 0
     }
 
@@ -186,7 +210,8 @@ USER=$USER
 SFTPUSER=$SFTPUSER
 RSA=$RSA
 SEC=$SEC
-SUS=$SUS\n
+SUS=$SUS
+WAKEUP=$WAKEUP\n
 # End of auto configured '$config'\n"
 return 0
     }
