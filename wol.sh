@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#  develop branch
+#  main branch
 #  License: "(MIT)", (see LICENSE.txt for more info)
 #  Author: "Christian Berg <gramse@pln.nu> (https://github.com/GramsesII/wol_and_update)"
 #  Contributor(s): "That there decent man over there"

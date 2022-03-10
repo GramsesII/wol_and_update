@@ -12,7 +12,10 @@ the * idicates done parts of TODO
 * tidey up the files 
 * make the wake up stage skipable if target machine is known to be awake, doesn't really matter but saves a few seconds.
 * make new variable for above idea, add it to wol_config_example.cfg and the autoconfig script part.
-is it possible to make a "fancy countdown timer" once but use 2 or more diffrent amount of start seconds?
+* is it possible to make a "fancy countdown timer" once but use 2 or more diffrent amount of start seconds?
+
+more testing needed with $SEC timer  ./test_code/fancy.sh
+can we add an apt-get autoremove function to the upgrade step in a functional way?
 
 checkout sudo apt-get -o Dpkg::Progress-Fancy="1" install "package" for some extra flare.
 

@@ -6,7 +6,8 @@
 #  Contributor(s): "That there decent man over there"
 
 #  A simple Wake on Lan and update a target machine script.
-#  This script is tested on Ubuntu 20.04 lts.
+#  This script is tested on Ubuntu 20.04 lts, Ubuntu 22.04 lts (release candidate)
+
 #  Target machine depends on: ssh (openssh-client ), systemctl (systemd), apt-get, sftp (server).
 #  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client).
 
@@ -32,98 +33,70 @@ main(){
 		echo -e "Wake on Lan and update ${YELLOW}$VER${RESET} - ${GREEN}started${RESET}: $(date)\n"
 	check_dep
 
-# //Start of config\\
+	# //Start of config\\
 	get_config
-# \\End of config//
+	# \\End of config//
 
-# Do we need to wake the target up berfore update?"
-if [[ $WAKEUP = yes ]]; then
-# Start of the magic (magic packet, get it? ;).
-	echo -e "\n${GREEN}Waking target up.${RESET}\n"
-		[[ $DO_RUN -eq 1 ]] &&	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
-# This next step might be unecessary, but just to be shure target is up and running before we try anything I'll leave this line in.
-		 tput civis
-                 echo -ne $WSEC="${SEC_COLOR}"
-                     while [ $WSEC -ge 0 ]; do
-                         if [ "$WSEC" -le "4" ]; then
-                             SEC_COLOR="${YELLOW}"
-                         fi
-                         if [ "$WSEC" -le "2" ]; then
-                             SEC_COLOR="${GREEN}"
-                         fi
-                             printf "\r${RESET}continues in: ${SEC_COLOR}%02d${RESET} seconds." "$WSEC"
-                             let "WSEC=WSEC-1"
-                         sleep 1s
-                     done
-                 echo -e "${RESET}\n"
-             tput cnorm
-	echo -e "${GREEN}Target gone woke.${RESET}\n"
+	# Do we need to wake the target up berfore update?"
+	if [[ $WAKEUP = yes ]]; then
+		# Start of the magic (magic packet, get it? ;).
+		echo -e "\n${GREEN}Waking target up.${RESET}\n"
+			[[ $DO_RUN -eq 1 ]] &&	sudo etherwake -i $IFNAME $MAC -b $BROADCAST
+		# This next step might be unecessary, but just to be shure target is up and running before we try anything I'll leave this 5sec countdown in.
+		COUNTD="$WSEC"
+		fancy_counter
+		echo -e "${GREEN}Target gone woke.${RESET}\n"
 	fi
-if [[ $WAKEUP = no ]]; then
-	echo -en "\n${GREEN}Target allready supposed to be woke moving along${RESET}"
+	if [[ $WAKEUP = no ]]; then
+		echo -en "\n${GREEN}Target allready supposed to be woke moving along${RESET}"
 	fi
 
-# Should we? or should we not! update, thats! the question.
-echo -e "${GREEN}Checking for updates.${RESET}\n"
+	# Should we? or should we not! update, thats! the question.
+	echo -e "${GREEN}Checking for updates.${RESET}\n"
 	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.push -P$PORT $SFTPUSER@$TARGET
 	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '~/wol_uppy/wol_uppy.sh'
 	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.pull -P$PORT $SFTPUSER@$TARGET
 	[[ $DO_RUN -eq 1 ]] && a1=$(cat ./wol_answer)
-#  echo $a1
+
 	if [[ $a1 = yes ]]; then
 		echo -en "\n${GREEN}party let's update.${RESET}\n"
 		update
-		fi
+	fi
      	if [[ $a1 = no ]]; then
      		echo -en "\n${RED}sorry no updates this time, no party for you.${RESET}\n"
-     		fi
-# cleaning up
-rm -f ./wol_answer
+   		fi
+	# cleaning up
+	rm -f ./wol_answer
 
-# Check if we are interested in suspending the target or not.
-			if [[ $SUS = yes ]]; then
-				echo -e "${GREEN}Lets suspend target machine until next update.${RESET}\n";
-				[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
-				echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n";
-				fi
-			if [[ $SUS = no ]]; then
-				echo -e "${GREEN}Skipping the suspend step.${RESET}\n";
-				fi
-
-echo -en "Wake on Lan ${YELLOW}$VER${RESET} - ${RED}stop${RESET}: $(date)\n"
-echo -en "This file only lets the script 'wol.sh' know if it is the first start or not, please ignore." > .1st
+	# Check if we are interested in suspending the target or not.
+	if [[ $SUS = yes ]]; then
+		echo -e "${GREEN}Lets suspend target machine until next update.${RESET}\n";
+		[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl suspend';
+		echo -e "${GREEN}Target put to sleep! Ending script.${RESET}\n";
+	fi
+	if [[ $SUS = no ]]; then
+		echo -e "${GREEN}Skipping the suspend step.${RESET}\n";
+	fi
+	echo -en "Wake on Lan ${YELLOW}$VER${RESET} - ${RED}stop${RESET}: $(date)\n"
+	echo -en "This file only lets the script 'wol.sh' know if it is the first start or not, please ignore." > .1st
 exit 0
 	}
 
 update(){
-		[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
-		[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
-			echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
-		[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
-			echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
-# Start of reboot counter
-			tput civis
-				echo -ne $SEC="${SEC_COLOR}"
-					while [ $SEC -ge 0 ]; do
-						if [ "$SEC" -le "30" ]; then
-							SEC_COLOR="${YELLOW}"
-						fi
-						if [ "$SEC" -le "15" ]; then
-							SEC_COLOR="${GREEN}"
-						fi
-							printf "\r${RESET}Reboot done in: ${SEC_COLOR}%02d${RESET} seconds." "$SEC"
-							let "SEC=SEC-1"
-						sleep 1s
-					done
-				echo -e "${RESET}\n"
-			tput cnorm
-# End of reboot counter
-		echo -e "${GREEN}Target rebooted${RESET}\n"
-	return
+	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get update'
+	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo apt-get -y upgrade'
+		echo -e "${GREEN}Update done! Rebooting target.${RESET}\n"
+	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT 'sudo systemctl reboot --now'
+		echo -e "${GREEN}Waiting for the reboot to be done.${RESET}\n"
+	# Start of reboot counter
+	COUNTD="$SEC"
+	fancy_counter
+	echo -e "${GREEN}Target rebooted${RESET}\n"
+return
 		}
 
 1stcheck(){
-# Check if this is the first start and if there are an old config file.
+	# Check if this is the first start and if there are an old config file.
 	if ! [[ -f $F1rst ]]; then echo -en "\n${RED}First start 'auto-config creator'${RESET}\n";
 		else main;
 	fi
@@ -132,33 +105,34 @@ update(){
 		n1='break 2>/dev/null'
 		if [[ -s $config ]]; then { yeano "$y1" "$n1"; }
 		fi
+
 			input
 			clear
-				echo -en "This will be your config file.\n"
+			echo -en "This will be your config file.\n"
 			review
 
 			while true; do
-					read -p "Want to keep it? [y/n/c]: " ync
-					case $ync in
-						[Yy]* )
-							mv -f ./$config ./$config-old
-							review > $config
-							break
+				read -p "Want to keep it? [y/n/c]: " ync
+				case $ync in
+					[Yy]* )
+						mv -f ./$config ./$config-old
+						review > $config
+						break
 						;;
-						[Nn]* )
-							clear
-							echo -en "${GREEN}OK, let's start over${RESET}"
-							input
-							clear
-							echo -en "${GREEN}This will be your config file.${RESET}\n"
-							review
+					[Nn]* )
+						clear
+						echo -en "${GREEN}OK, let's start over${RESET}"
+						input
+						clear
+						echo -en "${GREEN}This will be your config file.${RESET}\n"
+						review
 						;;
-						[Cc]* )
-							echo -en "\n${GREEN}OK, let's end the suffering.${RESET}\n"
-							exit 0
+					[Cc]* )
+						echo -en "\n${GREEN}OK, let's end the suffering.${RESET}\n"
+						exit 0
 						;;
-							* )
-							echo -en "Please answer ${YELLOW}yes${RESET},${YELLOW}no${RESET} or ${YELLOW}cancel${RESET}."
+						* )
+						echo -en "Please answer ${YELLOW}yes${RESET},${YELLOW}no${RESET} or ${YELLOW}cancel${RESET}."
 						;;
 					esac
 			done
@@ -166,35 +140,35 @@ update(){
 	}
 
 input(){
-# Auto configure inputs
-        echo -en "\nTarget Broadcast IP (i.e 192.168.0.255, get by running 'ifconfig' on the target machine).\n";
-        read -p ": " BROADCAST;
-        echo -en "\nTarget IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running 'ifconfig' on the target machine).\n";
-        read -p ": " MAC;
-        echo -en "\nTarget machines IP4 number.\n";
-        read -p ": " TARGET;
-        echo -en "\nTarget machines SSH port (default for SSH is 22).\n";
-        read -p ": " PORT;
-        echo -en "\nThe name of your local machines network interface (i.e eth0 or enp3s0).\n";
-        read -p ": " IFNAME;
-        echo -en "\nYour SSH username on the target machine. It will help if this user have\n";
-        echo -en "'YOUR_USER_NAME_HERE ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /bin/systemctl' without the ''\n";
-        echo -en "set in /etc/sudoers file on the target machine, this so you dont need to type in passwords 'all' the time.\n";
-        echo -en "NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).\n";
-        read -p ": " USER;
-		echo -en "\nYour username for SFTP\n";
+	# Auto configure inputs
+    echo -en "\nTarget Broadcast IP (i.e 192.168.0.255, get by running 'ifconfig' on the target machine).\n";
+    	read -p ": " BROADCAST;
+    echo -en "\nTarget IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running 'ifconfig' on the target machine).\n";
+    	read -p ": " MAC;
+    echo -en "\nTarget machines IP4 number.\n";
+    	read -p ": " TARGET;
+    echo -en "\nTarget machines SSH port (default for SSH is 22).\n";
+    	read -p ": " PORT;
+    echo -en "\nThe name of your local machines network interface (i.e eth0 or enp3s0).\n";
+    	read -p ": " IFNAME;
+    echo -en "\nYour SSH username on the target machine. It will help if this user have\n";
+    echo -en "'YOUR_USER_NAME_HERE ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /bin/systemctl' without the ''\n";
+    echo -en "set in /etc/sudoers file on the target machine, this so you dont need to type in passwords 'all' the time.\n";
+    echo -en "NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).\n";
+    	read -p ": " USER;
+	echo -en "\nYour username for SFTP\n";
 		read -p ": " SFTPUSER;
-        echo -en "\nWere your SSH RSA key file are located on the local machine.\n";
-        read -p ": " RSA;
-        echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
-        echo -en "Raise or lower this if needed (SEC=60 will proplably do in most cases).\n";
-        read -p ": " SEC;
-        echo -en "\nDo you want to suspend the target machine after the reboot? (yes/no, if unsure set SUS=no).\n";
+    echo -en "\nWere your SSH RSA key file are located on the local machine.\n";
+    	read -p ": " RSA;
+    echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
+    echo -en "Raise or lower this if needed (SEC=60 will proplably do in most cases).\n";
+    	read -p ": " SEC;
+    echo -en "\nDo you want to suspend the target machine after the reboot? (yes/no, if unsure set SUS=no).\n";
 		read -p ": " SUS;
-		echo -en "Are the target machine allready woke? (yes/no).\n";
+	echo -en "Are the target machine allready woke? (yes/no).\n";
 		read -p ": " WAKEUP;
-    return 0
-    }
+	return 0
+       }
 
 review(){
 # Config file part..
@@ -214,36 +188,36 @@ SUS=$SUS
 WAKEUP=$WAKEUP\n
 # End of auto configured '$config'\n"
 return 0
-    }
+         }
 
 log(){
-# Log thingys
-# Lets check if the log dir. exist if not lets create it.
-    	if [ ! -d "./log" ]; then
-        	mkdir -v ./log;
-    	fi
-# Some more logfile witchcraftery.
-	log=./log/"$(date +"%F-%T").log"
-		touch $log
-	exec 3>&1 4>&2
-	trap 'exec 2>&4 1>&3' 0 1 2 3 15
-	exec 1> >(tee -a "$log") 2>&1
-return 0
-	}
+# Log code
+	# Lets check if the log dir. exist if not lets create it.
+    if [ ! -d "./log" ]; then
+       	mkdir -v ./log;
+    fi
+		# Some more logfile witchcraftery.
+		log=./log/"$(date +"%F-%T").log"
+			touch $log
+		exec 3>&1 4>&2
+		trap 'exec 2>&4 1>&3' 0 1 2 3 15
+		exec 1> >(tee -a "$log") 2>&1
+	return 0
+	 }
 
 check_dep(){
 # Checking for some needed programs.
 failed=0
 echo -n "Checking dependencies... "
-        for name in etherwake tee ssh systemctl sftp
-        do
-                if ! [[ $(which $name 2>/dev/null) ]]; then
-                        [[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
-                        failed=1
-                        echo -en "\n${YELLOW}name needs to be installed. Use 'sudo apt-get install $name'${RESET}"
-                fi
-        done
-        [[ $failed -eq 1 ]] && echo -en "\n\n${YELLOW}Install the above and rerun this script${RESET}\n" && exit 1;
+	for name in etherwake tee ssh systemctl sftp
+    do
+    	if ! [[ $(which $name 2>/dev/null) ]]; then
+        	[[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
+            failed=1
+            echo -en "\n${YELLOW}name needs to be installed. Use 'sudo apt-get install $name'${RESET}"
+        fi
+    done
+    [[ $failed -eq 1 ]] && echo -en "\n\n${YELLOW}Install the above and rerun this script${RESET}\n" && exit 1;
 	echo -e "${GREEN}OK${RESET}\n"
 unset failed  name
 return 0
@@ -252,7 +226,7 @@ return 0
 get_config(){
 	DIR="${BASH_SOURCE%/*}"
 	cd $DIR
-# Checking if user config file are present.
+	# Checking if user config file are present.
 	echo -n "Checking for user config... "
     	for name in $config
     	do
@@ -261,21 +235,48 @@ get_config(){
         	[[ $deps -ne 1 ]] && echo -e "${GREEN}OK${RESET}\n" || { echo -en "\nCreate a new wol_config.cfg from the wol_config_example.cfg\n";exit 1; }
 	unset name deps
 	set -v
-		. "$config"
+	. "$config"
 	set +v # Please ignore this row in the logfile.
 return 0
 		}
 
 yeano(){
-        read -p "$text [y/n]? " yn
-            case $yn in
-                [Yy]* ) eval $1;;
-                [Nn]* ) eval $2;;
-                    * ) echo "Yes or no please.";;
-            esac
-        unset text y1 n1
+	read -p "$text [y/n]? " yn
+    case $yn in
+    	[Yy]* ) eval $1;;
+        [Nn]* ) eval $2;;
+        	* ) echo "Yes or no please.";;
+    esac
+    unset text y1 n1
     return 0
         }
+
+fancy_counter(){
+    if [[ $COUNTD -le 5 ]]; then
+        Y1="4"
+        G1="2"
+    fi
+    if [[ $COUNTD -ge 6 ]]; then
+        Y1="30"
+        G1="15"
+    fi
+    tput civis
+	    echo -ne $COUNTD="${SEC_COLOR}"
+        while [ $COUNTD -ge 0 ]; do
+            if [ "$COUNTD" -le "$Y1" ]; then
+                SEC_COLOR="${YELLOW}"
+            fi
+            if [ "$COUNTD" -le "$G1" ]; then
+                SEC_COLOR="${GREEN}"
+            fi
+            printf "\r${RESET}continues in: ${SEC_COLOR}%02d${RESET} seconds." "$COUNTD"
+            let "COUNTD=COUNTD-1"
+            sleep 1s
+        done
+     echo -en "${RESET}\n"
+    tput cnorm
+    unset TEST Y1 G1 SEC_COLOR
+			   }
 
 # Program starts here.
 	case "$1" in
@@ -283,13 +284,13 @@ yeano(){
 			1stcheck
 			main
    		;;
-# "Help" section
+			# "Help" section
         h)
         	for name in README.txt
         	do
-        	        [ -f $name ] || { echo -en "${RED}Readme file missing${RESET}\n";deps=1; }
+        	    [ -f $name ] || { echo -en "${RED}Readme file missing${RESET}\n";deps=1; }
         	done
-        	        [[ $deps -ne 1 ]] && cat README.txt || { exit 1; }
+        	[[ $deps -ne 1 ]] && cat README.txt || { exit 1; }
         ;;
         v)
         	echo -e "$VER"
@@ -297,9 +298,9 @@ yeano(){
         l)
         	for name in LICENSE.txt
         	do
-                	[ -f $name ] || { echo -en "${RED}License file missing${RESET}\n";deps=1; }
+                [ -f $name ] || { echo -en "${RED}License file missing${RESET}\n";deps=1; }
         	done
-            	    [[ $deps -ne 1 ]] && cat LICENSE.txt || { exit 1; }
+            [[ $deps -ne 1 ]] && cat LICENSE.txt || { exit 1; }
         ;;
         c)
 			text="Do you Want to manualy create one from 'wol_config_example.cfg' "
@@ -308,23 +309,23 @@ yeano(){
         	echo -en "Checking for user config... \n\n"
         	for name in $config
         	do
-            	    [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
+            	[ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
         	done
-            	    [[ $deps -ne 1 ]] && cat $config || { yeano "$y1" "$n1"; }
+           	[[ $deps -ne 1 ]] && cat $config || { yeano "$y1" "$n1"; }
         ;;
         e)
     		for name in $config
         	do
-              	  [ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
+              	[ -f $name ] || { echo -en "${RED}Config file missing${RESET}\n";deps=1; }
         	done
-            	  [[ $deps -ne 1 ]] && nano -T 4 ./$config || { exit 1; }
+           	[[ $deps -ne 1 ]] && nano -T 4 ./$config || { exit 1; }
         ;;
         *)
-                echo -en "Usage: ./wol.sh {c|e|h|l|r|v}\n"
-                echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Run main script.\n v, Version.\n"
-		exit 1
+            echo -en "Usage: ./wol.sh {c|e|h|l|r|v}\n"
+            echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Run main script.\n v, Version.\n"
+			exit 1
                 ;;
 	esac
-		unset name deps
+	unset name deps
 exit 0
 #EoF
