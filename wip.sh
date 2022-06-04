@@ -17,11 +17,11 @@ GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
 RESET='\e[0m'
-SEC_COLOR=${RED}
+# SEC_COLOR=${RED} #This color sets in the code for the 'fancy_timer'
 config="./config/wol_config.cfg"
 F1rst=".1st"
 WSEC="5"
-DO_RUN=0	#DO we actually run all commands.
+DO_RUN=1 #DO we actually run all commands.
 # 1= run all.
 # 0= skip all ssh, sftp, etherwake commands.
 # This is for testing purposes only, not for the actually wol.sh script.
@@ -51,7 +51,7 @@ main(){
 		echo -en "\n${GREEN}Target allready supposed to be woke moving along${RESET}"
 	fi
 
-	# Should we? or should we not! update, thats! the question.
+	# Should we? or should we not? update, thats! the question.
 	echo -e "${GREEN}Checking for updates.${RESET}\n"
 	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.push -P$PORT $SFTPUSER@$TARGET
 	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '~/wol_uppy/wol_uppy.sh'
@@ -252,6 +252,7 @@ yeano(){
         }
 
 fancy_counter(){
+	SEC_COLOR=${RED}
     if [[ $COUNTD -le 5 ]]; then
         Y1="4"
         G1="2"
@@ -272,10 +273,11 @@ fancy_counter(){
             printf "\r${RESET}continues in: ${SEC_COLOR}%02d${RESET} seconds." "$COUNTD"
             let "COUNTD=COUNTD-1"
             sleep 1s
+#            sleep 0.2s #shortens time during testing, 1s (in config)=.2s (in reality)
         done
      echo -en "${RESET}\n"
     tput cnorm
-    unset TEST Y1 G1 SEC_COLOR
+    unset TEST Y1 G1 SEC_COLOR COUNTD
 			   }
 
 # Program starts here.

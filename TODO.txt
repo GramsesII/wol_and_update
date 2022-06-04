@@ -14,9 +14,9 @@ the * idicates done parts of TODO
 * make new variable for above idea, add it to wol_config_example.cfg and the autoconfig script part.
 * is it possible to make a "fancy countdown timer" once but use 2 or more diffrent amount of start seconds?
 
-more testing needed with $SEC timer  ./test_code/fancy.sh
+more testing needed with $SEC timer  ./test_code/fancy.sh (colors not working properly for $SEC timer)
 can we add an apt-get autoremove function to the upgrade step in a functional way?
-
+check if "needrestart" can be used in a smart way after update. Seems needrestart only need to be installed to work, further testing needed. Does it work remotley.
 checkout sudo apt-get -o Dpkg::Progress-Fancy="1" install "package" for some extra flare.
 
 EoF
