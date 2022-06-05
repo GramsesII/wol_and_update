@@ -12,16 +12,16 @@
 #  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client).
 
 # //Internal variables change at your own risk.\\
-VER="v1.666-c"
+VER="v1.666-c1"
 GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
 RESET='\e[0m'
-# SEC_COLOR=${RED} #This color sets in the code for the 'fancy_timer'
+# SEC_COLOR=${RED} #This color sets in the code of 'fancy_timer'
 config="./config/wol_config.cfg"
 F1rst=".1st"
 WSEC="5"
-DO_RUN=1 #DO we actually run all commands.
+DO_RUN=0 #DO we actually run all commands.
 # 1= run all.
 # 0= skip all ssh, sftp, etherwake commands.
 # This is for testing purposes only, not for the actually wol.sh script.
@@ -45,6 +45,7 @@ main(){
 		# This next step might be unecessary, but just to be shure target is up and running before we try anything I'll leave this 5sec countdown in.
 		COUNTD="$WSEC"
 		fancy_counter
+		ping_check
 		echo -e "${GREEN}Target gone woke.${RESET}\n"
 	fi
 	if [[ $WAKEUP = no ]]; then
@@ -219,7 +220,7 @@ echo -n "Checking dependencies... "
     done
     [[ $failed -eq 1 ]] && echo -en "\n\n${YELLOW}Install the above and rerun this script${RESET}\n" && exit 1;
 	echo -e "${GREEN}OK${RESET}\n"
-unset failed  name
+unset failed name
 return 0
 		}
 
@@ -279,20 +280,34 @@ fancy_counter(){
     tput cnorm
     unset TEST Y1 G1 SEC_COLOR COUNTD
 			   }
-
+ping_check(){
+# checks if target really are woke, exits if not.
+	echo -en "\n${YELLOW}Pinging target to check if it's truly up.${RESET}\n\n"
+#	ping -n -q -c1 $TARGET
+	ping -n -q -c1 localhost #positive test
+	check=$?
+		if [[ $check -eq 0 ]]; then
+			return
+		fi
+		if [[ $check -eq 1 ]]; then
+			echo -en "${RED}Seems that target ain't woke after all, exiting script.${RESET}\n\n"
+			exit 1
+		fi
+	unset check
+			}
 # Program starts here.
 	case "$1" in
 		r)
-			1stcheck
-			main
-   		;;
-			# "Help" section
-        h)
         	for name in README.txt
         	do
         	    [ -f $name ] || { echo -en "${RED}Readme file missing${RESET}\n";deps=1; }
         	done
         	[[ $deps -ne 1 ]] && cat README.txt || { exit 1; }
+   		;;
+			# "Help" section
+        h)
+            echo -en "Usage: ./wol.sh {c|e|h|l|r|v}\n"
+            echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Readme.\n v, Version.\n"
         ;;
         v)
         	echo -e "$VER"
@@ -323,11 +338,9 @@ fancy_counter(){
            	[[ $deps -ne 1 ]] && nano -T 4 ./$config || { exit 1; }
         ;;
         *)
-            echo -en "Usage: ./wol.sh {c|e|h|l|r|v}\n"
-            echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Run main script.\n v, Version.\n"
-			exit 1
-                ;;
+			1stcheck
+			main
+       ;;
 	esac
-	unset name deps
 exit 0
 #EoF

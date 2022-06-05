@@ -10,13 +10,13 @@ But it was fun to do. Ideas for future updates are more then welcome either it's
 code or just ideas to improve functionality.
 
 
-						Start script by running wol.sh x were x is:
+						Start script by running wol.sh or wol.sh x were x is:
 
 						c	-	Shows current config.
 						e	-	Edit current cinfig file.
-						h	-	"Help" shows the README file.
+						h	-	Help.
 						l	-	Shows the LICENSE file.
-						r	-	Run the main script
+						r	-	Shows the Readme file.
 						v	-	Shows script version.
 
 

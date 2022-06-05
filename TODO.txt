@@ -13,10 +13,14 @@ the * idicates done parts of TODO
 * make the wake up stage skipable if target machine is known to be awake, doesn't really matter but saves a few seconds.
 * make new variable for above idea, add it to wol_config_example.cfg and the autoconfig script part.
 * is it possible to make a "fancy countdown timer" once but use 2 or more diffrent amount of start seconds?
+* more testing needed with $SEC timer  ./test_code/fancy.sh (colors not working properly for $SEC timer) - SOLVED!
+* changing the start pattern so wol.sh r are not needed anymore moving the "help" part to r sins that is the readme file anyway, so h can be freed up be actuall help.
+* add a "ping" check to see if target actually are woken.
 
-more testing needed with $SEC timer  ./test_code/fancy.sh (colors not working properly for $SEC timer)
+lets-test-a-thing-or-two.sh menu script
+
 can we add an apt-get autoremove function to the upgrade step in a functional way?
-check if "needrestart" can be used in a smart way after update. Seems needrestart only need to be installed to work, further testing needed. Does it work remotley.
+check if "needrestart" can be used in a smart way after update. Seems that needrestart after some testing only need to be installed to work, further testing needed though. Does it work remotley.
 checkout sudo apt-get -o Dpkg::Progress-Fancy="1" install "package" for some extra flare.
 
 EoF
