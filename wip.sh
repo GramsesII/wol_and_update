@@ -9,10 +9,10 @@
 #  This script is tested on Ubuntu 20.04 lts, Ubuntu 22.04 lts (release candidate)
 
 #  Target machine depends on: ssh (openssh-client ), systemctl (systemd), apt-get, sftp (server).
-#  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client).
+#  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client), dialog.
 
 # //Internal variables change at your own risk.\\
-VER="v1.666-c1"
+VER="v1.666-c2"
 GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
@@ -140,40 +140,109 @@ return
 	return 0
 	}
 
-input(){
-	# Auto configure inputs
-    echo -en "\nTarget Broadcast IP (i.e 192.168.0.255, get by running 'ifconfig' on the target machine).\n";
-    	read -p ": " BROADCAST;
-    echo -en "\nTarget IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running 'ifconfig' on the target machine).\n";
-    	read -p ": " MAC;
-    echo -en "\nTarget machines IP4 number.\n";
-    	read -p ": " TARGET;
-    echo -en "\nTarget machines SSH port (default for SSH is 22).\n";
-    	read -p ": " PORT;
-    echo -en "\nThe name of your local machines network interface (i.e eth0 or enp3s0).\n";
-    	read -p ": " IFNAME;
-    echo -en "\nYour SSH username on the target machine. It will help if this user have\n";
-    echo -en "'YOUR_USER_NAME_HERE ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /bin/systemctl' without the ''\n";
-    echo -en "set in /etc/sudoers file on the target machine, this so you dont need to type in passwords 'all' the time.\n";
-    echo -en "NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).\n";
-    	read -p ": " USER;
-	echo -en "\nYour username for SFTP\n";
-		read -p ": " SFTPUSER;
-    echo -en "\nWere your SSH RSA key file are located on the local machine.\n";
-    	read -p ": " RSA;
-    echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
-    echo -en "Raise or lower this if needed (SEC=60 will proplably do in most cases).\n";
-    	read -p ": " SEC;
-    echo -en "\nDo you want to suspend the target machine after the reboot? (yes/no, if unsure set SUS=no).\n";
-		read -p ": " SUS;
-	echo -en "Are the target machine allready woke? (yes/no).\n";
-		read -p ": " WAKEUP;
-	return 0
-       }
+input()(
+# Auto configure inputs
+dia(){
+    dialog \
+        --backtitle "Autoconfigure Script 2.0" \
+        --title "$page" \
+        --shadow \
+        --inputbox "$text" 17 80 "$preset" 2> ./inputbox.tmp.$$
+    retval=$?
+    input=`cat ./inputbox.tmp.$$`
+    rm -f ./inputbox.tmp.$$
+        case $retval in
+            0)
+            echo -en "$value$input\n" >> $config
+            ;;
+            1)
+            echo -en "\nCancel pressed.\n"
+            ;;
+            255)
+            echo -en "\n[ESC] key pressed.\n"
+            exit 1
+        esac
+    return
+    }
+
+values(){
+#1/11
+    text="\nTarget Broadcast IP.\n\n(i.e 192.168.0.255, get by running 'ifconfig' on the target machine)"
+    preset=""
+    value="BROADCAST="
+    page="01/11"
+    dia
+#2/11
+    text="\nTarget IP4 Macadress.\n\n(i.e aa:bb:cc:dd:ee:ff, get by running 'ifconfig' on the target machine)"
+    preset=""
+    value="MAC="
+    page="02/11"
+    dia
+#3/11
+    text="\nTarget machines IP.\n\n(i.e 192.168.0.254, get by running 'ifconfig' on the target machine)"
+    preset=""
+    value="TARGET="
+    page="03/11"
+    dia
+#4/11
+    text="\nTarget machines SSH port.\n\n(default for SSH is 22)"
+    preset="22"
+    value="PORT="
+    page="04/11"
+    dia
+#5/11
+    text="\nThe name of your local machines network interface.\n\n(i.e eth0 or enp3s0)"
+    preset=""
+    value="IFNAME="
+    page="05/11"
+#6/11
+	text="\nYour SSH username on the target machine.\n\nIt will help if this user have\nYOUR_USER_NAME_HERE ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /bin/systemctl\nset in /etc/sudoers file on the target machine,\nthis so you dont need to type in passwords 'all' the time.\n\nNOTE! the order in this file matters, try putting it before the last line.\n(edit with sudo visudo)."
+    preset=""
+    value="USER="
+    page="06/11"
+    dia
+#7/11
+    text="\nYour username for SFTP."
+    preset=""
+    value="SFTPUSER="
+    page="07/11"
+    dia
+#8/11
+    text="\nWere your SSH RSA key file are located on the local machine."
+    preset=""
+    value="RSA="
+    page="08/11"
+    dia
+#9/11
+	text="\nHow many seconds do we wait for the target machine to reboot\nRaise/lower this as needed.\n\n(SEC=60 will proplably do in most cases)"
+    preset="60"
+    value="SEC="
+    page="09/11"
+    dia
+#10/11
+    text="\nDo you want to suspend the target machine after reboot?\n\n(yes/no, if unsure set 'no')."
+    preset="no"
+    value="SUS="
+    page="10/11"
+    dia
+#11/11
+	text="\nAre the target machine already woke?\n\n(yes/no, problably 'no' if you set 'no' in the previous question)."
+    preset="no"
+    value="WAKEUP="
+    page="11/11"
+    dia
+
+unset text value page
+trap "rm -f ./inputbox.tmp.$$; exit" SIGHUP SIGINT SIGTERM
+return
+ }
+values
+ )
 
 review(){
 # Config file part..
-    echo -en "
+. "./config/wol_config.cfg" 
+    echo -e "
 # Start of auto configured '$config'
 # More info about this config in 'wol_config_example.cfg'\n
 BROADCAST=$BROADCAST
@@ -210,7 +279,7 @@ check_dep(){
 # Checking for some needed programs.
 failed=0
 echo -n "Checking dependencies... "
-	for name in etherwake tee ssh systemctl sftp
+	for name in etherwake tee ssh systemctl sftp dialog
     do
     	if ! [[ $(which $name 2>/dev/null) ]]; then
         	[[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
@@ -283,8 +352,8 @@ fancy_counter(){
 ping_check(){
 # checks if target really are woke, exits if not.
 	echo -en "\n${YELLOW}Pinging target to check if it's truly up.${RESET}\n\n"
-#	ping -n -q -c1 $TARGET
-	ping -n -q -c1 localhost #positive test
+	ping -n -q -c1 $TARGET
+#	ping -n -q -c1 localhost #positive test
 	check=$?
 		if [[ $check -eq 0 ]]; then
 			return
@@ -304,7 +373,6 @@ ping_check(){
         	done
         	[[ $deps -ne 1 ]] && cat README.txt || { exit 1; }
    		;;
-			# "Help" section
         h)
             echo -en "Usage: ./wol.sh {c|e|h|l|r|v}\n"
             echo -en " c, Current config.\n e, Edit current config.\n h, Help.\n l, License.\n r, Readme.\n v, Version.\n"

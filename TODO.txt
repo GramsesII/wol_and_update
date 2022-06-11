@@ -16,8 +16,8 @@ the * idicates done parts of TODO
 * more testing needed with $SEC timer  ./test_code/fancy.sh (colors not working properly for $SEC timer) - SOLVED!
 * changing the start pattern so wol.sh r are not needed anymore moving the "help" part to r sins that is the readme file anyway, so h can be freed up be actuall help.
 * add a "ping" check to see if target actually are woken.
+* added autoconfig script 2.0 part to wip.sh
 
-lets-test-a-thing-or-two.sh menu script
 
 can we add an apt-get autoremove function to the upgrade step in a functional way?
 check if "needrestart" can be used in a smart way after update. Seems that needrestart after some testing only need to be installed to work, further testing needed though. Does it work remotley.
