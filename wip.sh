@@ -17,14 +17,14 @@ GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
 RESET='\e[0m'
-# SEC_COLOR=${RED} #This color sets in the code of 'fancy_timer'
+# SEC_COLOR=${RED} #This color now sets in the 'fancy_timer' function.
 config="./config/wol_config.cfg"
 F1rst=".1st"
 WSEC="5"
 DO_RUN=0 #DO we actually run all commands.
 # 1= run all.
 # 0= skip all ssh, sftp, etherwake commands.
-# This is for testing purposes only, not for the actually wol.sh script.
+# This is for testing purposes only, for the actually wol.sh script it should allways be set to 1.
 
 # \\Internal variables end.//
 
@@ -52,7 +52,7 @@ main(){
 		echo -en "\n${GREEN}Target allready supposed to be woke moving along${RESET}"
 	fi
 
-	# Should we? or should we not? update, thats! the question.
+	# Should we? or should we not? update, thats! is the question.
 	echo -e "${GREEN}Checking for updates.${RESET}\n"
 	[[ $DO_RUN -eq 1 ]] && sftp -i $RSA -b ./config/sftp.push -P$PORT $SFTPUSER@$TARGET
 	[[ $DO_RUN -eq 1 ]] && ssh -i $RSA -l $USER $TARGET -p $PORT '~/wol_uppy/wol_uppy.sh'
