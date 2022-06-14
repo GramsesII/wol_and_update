@@ -1,4 +1,4 @@
-lcd /up-dev
+lcd /up
 cd
 mkdir ./wol_uppy
 cd wol_uppy
