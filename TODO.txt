@@ -19,6 +19,8 @@ the * idicates done parts of TODO
 * added autoconfig script 2.0 part to wip.sh
 
 
+Test new new autoconfigure script.
+
 can we add an apt-get autoremove function to the upgrade step in a functional way?
 check if "needrestart" can be used in a smart way after update. Seems that needrestart after some testing only need to be installed to work, further testing needed though. Does it work remotley.
 checkout sudo apt-get -o Dpkg::Progress-Fancy="1" install "package" for some extra flare.

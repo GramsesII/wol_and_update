@@ -67,9 +67,7 @@ sftp.push				- Directs sftp to were to push "wol_uppy.sh and wol_uppy.txt"
 sftp.pull				- Tells sftp to pull "wol_answer" from the target maschine,
 						and cleans up what was dun in sftp.push.
 
-TODO.txt				- My reminder  of what to do. Will problably be moved
-						to develop branch in the future.
-						
+
 						In develop branch there is also this file.
 						------------------------------------------
 
@@ -77,3 +75,6 @@ wip.sh					- Work in progress, used for testing things do not
 						use this file, use the main 'wol.sh' instead.
 						Moved to develop branch only.
 
+TODO.txt				- My reminder  of what to do. Will problably be moved
+						to develop branch in the future.
+						

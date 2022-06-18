@@ -1,0 +1,4 @@
+2022-06-18 made dialog optional
+2022-06-xx made autoconfig script 2.0 with dialog
+2022-06-xx fixed an path error in sftp.push and sftp.pull
+2022-xx-xx everything else thats in the script. Sorry didn't think this little script would grow like it has so I didn't care to write down all changes.

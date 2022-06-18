@@ -9,10 +9,11 @@
 #  This script is tested on Ubuntu 20.04 lts, Ubuntu 22.04 lts (release candidate)
 
 #  Target machine depends on: ssh (openssh-client ), systemctl (systemd), apt-get, sftp (server).
-#  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client), dialog.
+#  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client).
+#  Optional depends: dialog.
 
 # //Internal variables change at your own risk.\\
-VER="v1.666-c2"
+VER="v1.666-c3"
 GREEN='\e[0;32m'
 RED='\e[0;31m'
 YELLOW='\e[0;33m'
@@ -109,13 +110,14 @@ return
 
 			input
 			clear
-			echo -en "This will be your config file.\n"
+			echo -en "${GREEN}This will be your config file.${RESET}\n"
 			review
 
 			while true; do
 				read -p "Want to keep it? [y/n/c]: " ync
 				case $ync in
 					[Yy]* )
+						echo -en "${GREEN}Saving config.${RESET}"
 						mv -f ./$config ./$config-old
 						review > $config
 						break
@@ -129,7 +131,7 @@ return
 						review
 						;;
 					[Cc]* )
-						echo -en "\n${GREEN}OK, let's end the suffering.${RESET}\n"
+						echo -en "\n${GREEN}OK, let's end the suffering. Canceling${RESET}\n"
 						exit 0
 						;;
 						* )
@@ -142,6 +144,21 @@ return
 
 input()(
 # Auto configure inputs
+
+check_for_dia(){
+  # Checking for dialog (new or old auto config).
+  echo -n "Checking for dialog... "
+      for name in dialog
+      do
+          if ! [[ $(which $name 2>/dev/null) ]]; then
+              echo -en "\n${YELLOW}$name not found. Using old 'script'${RESET}\n" && old_auto;
+          else values;
+          fi
+      done
+  unset name
+return 0
+          }
+
 dia(){
     dialog \
         --backtitle "Autoconfigure Script 2.0" \
@@ -236,7 +253,39 @@ unset text value page
 trap "rm -f ./inputbox.tmp.$$; exit" SIGHUP SIGINT SIGTERM
 return
  }
-values
+
+old_auto(){
+# Old Auto configure inputs
+     echo -en "\nTarget Broadcast IP (i.e 192.168.0.255, get by running 'ifconfig' on the target machine).\n";
+         read -p ": " BROADCAST;
+	 echo -en "\nTarget IP4 Macadress (looks like aa:bb:cc:dd:ee:ff, get by running 'ifconfig' on the target machine).\n";
+         read -p ": " MAC;
+     echo -en "\nTarget machines IP4 number.\n";
+         read -p ": " TARGET;
+     echo -en "\nTarget machines SSH port (default for SSH is 22).\n";
+         read -p ": " PORT;
+     echo -en "\nThe name of your local machines network interface (i.e eth0 or enp3s0).\n";
+         read -p ": " IFNAME;
+     echo -en "\nYour SSH username on the target machine. It will help if this user have\n";
+     echo -en "'YOUR_USER_NAME_HERE ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /bin/systemctl' without the ''\n";
+     echo -en "set in /etc/sudoers file on the target machine, this so you dont need to type in passwords 'all' the time.\n";
+     echo -en "NOTE! the order in this file matters, try putting it before the last line, (edit with sudo visudo).\n";
+         read -p ": " USER;
+     echo -en "\nYour username for SFTP\n";
+         read -p ": " SFTPUSER;
+     echo -en "\nWere your SSH RSA key file are located on the local machine.\n";
+         read -p ": " RSA;
+     echo -en "\nHow many seconds do we wait for the target machine to reboot\n";
+     echo -en "Raise or lower this if needed (SEC=60 will proplably do in most cases).\n";
+         read -p ": " SEC;
+     echo -en "\nDo you want to suspend the target machine after the reboot? (yes/no, if unsure set SUS=no).\n";
+         read -p ": " SUS;
+     echo -en "Are the target machine allready woke? (yes/no).\n";
+         read -p ": " WAKEUP;
+return
+}
+
+check_for_dia
  )
 
 review(){
