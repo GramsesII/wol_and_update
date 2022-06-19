@@ -6,22 +6,22 @@
 #  Contributor(s): "That there decent man over there"
 
 #  A simple Wake on Lan and update a target machine script.
-#  This script is tested on Ubuntu 20.04 lts, Ubuntu 22.04 lts (release candidate)
+#  This script is tested on Ubuntu 20.04 lts, Ubuntu 22.04 lts (release candidate), Ubuntu 22.04 lts
 
 #  Target machine depends on: ssh (openssh-client ), systemctl (systemd), apt-get, sftp (server).
 #  Depends on: etherwake, ssh (openssh-client), systemctl (systemd), tee (coreutils), sftp (client).
 #  Optional depends: dialog.
 
 # //Internal variables change at your own risk.\\
-VER="v1.666-c3"
-GREEN='\e[0;32m'
-RED='\e[0;31m'
-YELLOW='\e[0;33m'
-RESET='\e[0m'
+VER="v1.666-c3" #Script version, 10points if you get the v1.666 reference.
+GREEN='\e[0;32m' #Text color green.
+RED='\e[0;31m' #Text color red.
+YELLOW='\e[0;33m' #Text color Yellow.
+RESET='\e[0m' #Resets text back to normal color.
 # SEC_COLOR=${RED} #This color now sets in the 'fancy_timer' function.
-config="./config/wol_config.cfg"
+config="./config/wol_config.cfg" #Where is the config  file.
 F1rst=".1st"
-WSEC="5"
+WSEC="5" #Wakeup timer in seconds.
 DO_RUN=0 #DO we actually run all commands.
 # 1= run all.
 # 0= skip all ssh, sftp, etherwake commands.
@@ -328,7 +328,7 @@ check_dep(){
 # Checking for some needed programs.
 failed=0
 echo -n "Checking dependencies... "
-	for name in etherwake tee ssh systemctl sftp dialog
+	for name in etherwake tee ssh systemctl sftp
     do
     	if ! [[ $(which $name 2>/dev/null) ]]; then
         	[[ $failed -eq 0 ]] && echo -en "${RED}FAIL${RESET}\n"
